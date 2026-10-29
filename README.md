@@ -2,7 +2,7 @@
 
 <h1>🛡️ Wazuh Autopilot</h1>
 
-<h3>An agentic SOC for Wazuh, built on Strands Agents. A 13-agent swarm triages, investigates and responds through the Wazuh MCP Server, and humans stay in control.</h3>
+<h3>แพลตฟอร์ม Agentic SOC สำหรับ Wazuh ขับเคลื่อนด้วย Strands Agents<br>ฝูง 13 AI Agents ทำงานร่วมกันเพื่อ Triage, สืบสวน และตอบสนองต่อภัยคุกคามผ่าน Wazuh MCP Server โดยมีมนุษย์คอยควบคุมเสมอ</h3>
 
 <p>
   <a href="https://github.com/gensecaihq/Wazuh-Autopilot/releases"><img src="https://img.shields.io/github/v/release/gensecaihq/Wazuh-Autopilot?color=2ea44f&label=release&style=flat-square" alt="Release"/></a>
@@ -20,114 +20,201 @@
 </p>
 
 <p>
-  <a href="#quick-start"><b>Quick Start</b></a> &nbsp;·&nbsp;
-  <a href="docs/ARCHITECTURE.md"><b>Architecture</b></a> &nbsp;·&nbsp;
-  <a href="docs/DEPLOYMENT.md"><b>Deploy</b></a> &nbsp;·&nbsp;
+  <a href="#quick-start-เริ่มต้นใช้งานด่วน"><b>เริ่มต้นใช้งานด่วน</b></a> &nbsp;·&nbsp;
+  <a href="#ระบบการทำงานเป็นแบบไหน-how-it-works"><b>ระบบการทำงาน</b></a> &nbsp;·&nbsp;
+  <a href="docs/ARCHITECTURE.md"><b>สถาปัตยกรรม (Architecture)</b></a> &nbsp;·&nbsp;
+  <a href="docs/DEPLOYMENT.md"><b>การ Deploy</b></a> &nbsp;·&nbsp;
   <a href="docs/AGENTS_AND_SKILLS.md"><b>Agents & Skills</b></a> &nbsp;·&nbsp;
-  <a href="docs/API.md"><b>API</b></a> &nbsp;·&nbsp;
-  <a href="CHANGELOG.md"><b>Changelog</b></a>
+  <a href="docs/API.md"><b>API Docs</b></a> &nbsp;·&nbsp;
+  <a href="CHANGELOG.md"><b>ประวัติการแก้ไข</b></a>
 </p>
 
 </div>
 
 ---
 
-Wazuh Autopilot is a self-hosted platform that works your Wazuh alerts with a swarm of [Strands](https://strandsagents.com) agents. They reach Wazuh only through the [Wazuh MCP Server](https://github.com/gensecaihq/Wazuh-MCP-Server) (v4.3.0, 55 tools). Alerts become incidents. Agents triage, correlate, investigate, enrich and plan the response, and every containment step goes through an autonomy policy you control, from "observe only" to "fully autonomous for low-risk actions". Everything runs in one container plus Postgres and ships with a web console.
+**Wazuh Autopilot** คือแพลตฟอร์ม Self-hosted ที่เปลี่ยนการทำงานของศูนย์เฝ้าระวังความมั่นคงปลอดภัยไซเบอร์ (SOC) ให้เป็นระบบอัตโนมัติด้วยฝูง AI Agents จาก [Strands Agents](https://strandsagents.com) ทำงานเชื่อมต่อกับ Wazuh SIEM ผ่าน [Wazuh MCP Server](https://github.com/gensecaihq/Wazuh-MCP-Server) (เครื่องมือกว่า 55 รายการ) 
 
-**⚡ Minutes, not hours** &nbsp;·&nbsp; **🤖 13 agents / 37 skills** &nbsp;·&nbsp; **🧭 NIST · MITRE · CIS · ISO · PCI** &nbsp;·&nbsp; **✅ Policy-gated response** &nbsp;·&nbsp; **🔭 Full tracing** &nbsp;·&nbsp; **🔒 Air-gap ready**
+ระบบจะดึง Alert เข้ามาจัดกลุ่มเป็นเคสภัยคุกคาม (Incidents) โดยอัตโนมัติ จากนั้น AI Agents จะช่วยคัดกรอง (Triage), สหสัมพันธ์เหตุการณ์ (Correlate), เจาะลึกทางนิติวิทยาศาสตร์ดิจิทัล (Deep DFIR), เพิ่มบริบท Threat Intelligence และวางแผนการตอบสนอง ทุกขั้นตอนการสั่งระงับหรือแก้ไข (Containment/Remediation) จะต้องผ่าน **นโยบายการควบคุม (Autonomy Policy)** ที่กำหนดได้เอง ตั้งแต่ระดับ "สังเกตการณ์อย่างเดียว" ไปจนถึง "อัตโนมัติเฉพาะเหตุการณ์ความเสี่ยงต่ำ" โดยทั้งหมดรันบน Container และมาพร้อมกับ Web Console ควบคุมครบวงจร
 
-## Quick start
+**⚡ ทำงานเสร็จในไม่กี่นาที** &nbsp;·&nbsp; **🤖 13 Agents / 37 Skills** &nbsp;·&nbsp; **🧭 อิงมาตรฐาน NIST · MITRE · CIS · ISO · PCI** &nbsp;·&nbsp; **✅ ควบคุมสิทธิ์การสั่งการ (Policy-Gated)** &nbsp;·&nbsp; **🔭 บันทึก Traces และ Observability ครบทุกขั้นตอน** &nbsp;·&nbsp; **🔒 ใช้งานแบบตัดการเชื่อมต่อภายนอก (Air-gap Ready)**
+
+---
+
+## ระบบการทำงานเป็นแบบไหน? (How It Works)
+
+สถาปัตยกรรมการทำงานของ Wazuh Autopilot แบ่งออกเป็น 5 ขั้นตอนหลักตาม Flow ดังนี้:
+
+```
+┌──────────────┐     Alerts (Polling / Webhook)     ┌────────────────────────────────────────────────────────┐
+│ Wazuh Server │ ─────────────────────────────────► │                   Wazuh Autopilot                      │
+└──────────────┘                                    │  1. Ingestion & Normalization                          │
+       ▲                                            │  2. Deterministic Grouping (รวมเป็น Incident Case)     │
+       │                                            └───────────────────────────┬────────────────────────────┘
+       │                                                                        │ Trigger Workflow
+       │                                                                        ▼
+┌──────┴──────────────┐      Read-only & Verify Tools       ┌────────────────────────────────────────────────────────┐
+│  Wazuh MCP Server   │ ◄────────────────────────────────── │         ฝูง AI Agents (Strands Swarm / Graph)          │
+│ (v4.3.0 · 55 Tools) │                                     │  • Overwatch (SOC Commander): ควบคุมทิศทางและส่งต่องาน │
+└──────┬──────────────┘                                     │  • Sentinel (Tier 1 Triage): คัดกรอง Alert และกรองขยะ  │
+       │                                                    │  • Weaver (Tier 2 Correlation): สหสัมพันธ์เหตุการณ์    │
+       │                                                    │  • Sleuth (Tier 3 DFIR): เจาะลึกนิติวิทยาศาสตร์        │
+       │                                                    │  • Oracle (CTI Analyst): ตรวจสอบฐานข้อมูลข่าวกรอง      │
+       │                                                    │  • Strategist (IR Lead): วางแผนมาตรการตอบสนอง          │
+       │                                                    └───────────────────────────┬────────────────────────────┘
+       │                                                                                │ propose_action (เสนอคำสั่งจัดการ)
+       │                                                                                ▼
+       │               คำสั่งที่ผ่านการอนุมัติ               ┌────────────────────────────────────────────────────────┐
+       │ ◄───────────────────────────────────────────────── │               Autonomy Policy & Approvals              │
+       │                                                    │  • ตรวจสอบ Policy (Observe / Supervised / Auto)        │
+       │                                                    │  • Protected Targets (ห้ามรันกับเป้าหมายสำคัญ)         │
+       │                                                    │  • Human Approvals Queue (รอการยืนยันจากมนุษย์)        │
+       │                                                    └────────────────────────────────────────────────────────┘
+       ▼
+┌─────────────────────┐
+│ Platform Executor   │ ──► สั่งดำเนินการ (Active Response / Isolation / Kill Process)
+│ (การปฏิบัติการจริง) │ ──► ตรวจสอบซ้ำด้วย wazuh_check_* ทันที
+│                     │ ──► บันทึก Audit Log และรองรับการ Rollback คืนสถานะ
+└─────────────────────┘
+```
+
+### 1. การรับข้อมูล Alert เข้าสู่ระบบ (Alert Ingestion & Case Grouping)
+- รับข้อมูลได้ 2 ทาง: **Webhook** (รับ Event แบบ Real-time จาก Wazuh) หรือ **MCP Polling** (ดึง Alert จาก Wazuh Manager อัตโนมัติทุกๆ 30 วินาที)
+- ทำ Normalization จัดโครงสร้างข้อมูลให้อยู่ในฟอร์แมตมาตรฐาน
+- นำ Alert ที่เกี่ยวข้องกัน (เช่น Rule ID เดียวกัน, Host เดียวกัน, หรือเกิดจาก Source IP เดียวกันในหน้าต่างเวลาที่กำหนด) มา **รวมกลุ่มเป็นเคสภัยคุกคามเดียวกัน (Deterministic Grouping)** ช่วยลดปัญหา Alert Fatigue ได้อย่างมีนัยสำคัญ
+
+### 2. ฝูง 13 AI Agents ประสานงานร่วมกัน (Strands Swarm & Handoffs)
+- **SOC Commander (Overwatch)** จะเป็นด่านแรกในการประเมินสถานการณ์ แล้วส่งต่องาน (Handoff) ไปยังเอเจนต์ผู้เชี่ยวชาญเฉพาะด้าน
+- เอเจนต์ทำงานร่วมกันแบบ Dynamic Handoff หรือตามโครงสร้าง Graph Workflow ที่วางไว้
+- เอเจนต์สามารถดึงทักษะความเชี่ยวชาญ **37 Agent Skills** (เช่น ตรวจสอบ Brute Force, FIM, Sysmon, Ransomware, Ransomware Investigation) มาปรับใช้ตามสถานการณ์
+
+### 3. มาตรการความปลอดภัยขั้นสูงสุด (Safe-by-Construction)
+- **AI ไม่มีสิทธิ์สั่งแก้ไขระบบโดยตรง:** เอเจนต์จะไม่ได้รับสิทธิ์ในการสั่งเปลี่ยนสถานะของ Wazuh ทุกเครื่องมือแก้ไขจะถูกบล็อกผ่าน MCP Filter และ Approval Gate
+- เมื่อเอเจนต์ต้องการให้ระงับเหตุการณ์ (เช่น ตัดเน็ตเวิร์กเครื่องที่มีมัลแวร์ หรือบล็อก IP) เอเจนต์ทำได้เพียงเรียกฟังก์ชัน `propose_action` เพื่อเสนอคำสั่งพร้อมระบุระดับความมั่นใจ (Confidence Score), เหตุผลสนับสนุน และขั้นตอนการ Rollback
+
+### 4. นโยบายการควบคุมระดับการตัดสินใจ (Autonomy Policy & Approvals)
+- การตัดสินใจขึ้นอยู่กับนโยบายที่ SOC Manager กำหนดไว้:
+  - **Observe-only:** แสดงข้อเสนอแนะเท่านั้น ไม่มีการกดดำเนินการ
+  - **Recommend:** มนุษย์ต้องเป็นผู้อนุมัติและเป็นผู้สั่งรันเอง
+  - **Supervised:** มนุษย์กดอนุมัติ แล้วระบบ Platform Executor จะสั่งรันให้
+  - **Autonomous:** ระบบรันให้อัตโนมัติทันที เฉพาะ Action ความเสี่ยงต่ำที่มีคะแนนความมั่นใจเกินเกณฑ์ และไม่เกินเพดานงบประมาณต่อชั่วโมง
+- **Critical Risk:** เหตุการณ์ความเสี่ยงระดับวิกฤตจะต้องผ่านการอนุมัติจากมนุษย์เสมอ (บังคับ Two-Person Rule ได้)
+- **Protected Targets:** ปกป้องเซิร์ฟเวอร์หลัก, IP สำคัญ, และบัญชีผู้ดูแลระบบจากการถูกสั่งระงับโดยอัตโนมัติ 100%
+
+### 5. การรันคำสั่งและการตรวจสอบยืนยัน (Execution & Verification)
+- คำสั่งที่ได้รับอนุมัติจะถูกประมวลผลโดย **Platform Executor** ส่งไปยัง Wazuh ผ่าน Wazuh MCP Server
+- เมื่อรันเสร็จสิ้น ระบบจะเรียกเครื่องมือ `wazuh_check_*` เพื่อตรวจสอบยืนยันสถานะจริงทันทีว่าการสั่งการสำเร็จหรือไม่
+- บันทึกทุกคำสั่งลง **Immutable Audit Log** และเตรียมปุ่ม **Rollback** เพื่อคืนค่าสถานะเดิมได้อย่างปลอดภัย
+
+---
+
+## ทีม 13 AI Agents ใน Swarm
+
+| Agent (Codename) | ตำแหน่ง | หน้าที่หลัก |
+|---|---|---|
+| **SOC Commander** (`Overwatch`) | หัวหน้าเวร SOC (LEAD) | ประเมินสถานการณ์ภาพรวม, ส่งต่องานให้ Specialist และตัดสินใจปิดรอบเคส |
+| **Tier 1 Triage Analyst** (`Sentinel`) | นักวิเคราะห์ Tier 1 | คัดกรองและตัดสัญญาณรบกวน (Noise), ตรวจสอบความถูกต้องของ Alert, ประเมินความรุนแรง |
+| **Tier 2 Correlation Analyst** (`Weaver`) | นักวิเคราะห์ Tier 2 | สหสัมพันธ์ Alert ข้ามโฮสต์และเวลา, ทำ Mapping เข้ากับเทคนิค MITRE ATT&CK และสร้างไทม์ไลน์ |
+| **Tier 3 DFIR Investigator** (`Sleuth`) | ผู้เชี่ยวชาญสืบสวนเชิงลึก | นิติวิทยาศาสตร์ดิจิทัลระดับ Host, ตรวจจับ Persistence, สิทธิ์ผู้ใช้ และ Lateral Movement |
+| **Cyber Threat Intelligence** (`Oracle`) | นักวิเคราะห์ CTI | เสริมข้อมูล IoCs, จัดเกรดความน่าเชื่อถือ และเทียบเคียงกับ Threat Actor ที่รู้จัก |
+| **Threat Hunter** (`Tracker`) | นักล่าภัยคุกคาม | ทำการตรวจค้นหาภัยคุกคามเชิงรุก (PEAK Framework) ทั่วทั้งระบบโครงข่าย |
+| **Vulnerability Manager** (`Patchwork`) | ผู้จัดการช่องโหว่ | เชื่อมโยงข้อมูลช่องโหว่ Wazuh Vulnerability Detector เข้ากับ CISA KEV, EPSS และประเมินความเสี่ยง |
+| **Incident Response Lead** (`Strategist`) | หัวหน้าทีมรับมือเหตุฉุกเฉิน | วางแผนยุทธวิธีตอบสนองเหตุการณ์ (Containment, Eradication, Recovery) ตามมาตรฐาน SANS |
+| **Security Operations Engineer** (`Enforcer`) | วิศวกรปฏิบัติการความปลอดภัย | ร่างข้อเสนอ Active Response ปรับแต่งการบล็อกและประเมินผลกระทบต่อระบบงาน |
+| **Detection Engineer** (`Forge`) | วิศวกรสร้างกฎตรวจจับ | ออกแบบ พัฒนา และปรับปรุงกฎ Wazuh Rules / Decoders และแปลง Sigma Rules |
+| **Compliance & GRC Analyst** (`Auditor`) | นักวิเคราะห์การปฏิบัติตามกฎเกณฑ์ | เทียบเคียงเหตุการณ์เข้ากับข้อกำหนด PCI-DSS, ISO/IEC 27001, CIS Benchmarks |
+| **Wazuh Platform Engineer** (`Keeper`) | วิศวกรดูแลแพลตฟอร์ม Wazuh | ตรวจสอบสถานะคลัสเตอร์ Wazuh, ปัญหาการเชื่อมต่อของ Agent และประสานงานทางเทคนิค |
+| **SOC Manager** (`Chronicle`) | ผู้จัดการศูนย์ SOC | สรุปรายงานสำหรับผู้บริหาร, วิเคราะห์ประสิทธิภาพ MTTR/MTTD และควบคุม SLA ของทีม |
+
+---
+
+## 37 ทักษะเฉพาะทาง (Agent Skills)
+
+ระบบมาพร้อมกับ **37 Skills** (มาตรฐาน `SKILL.md`) ครอบคลุม:
+- **ทักษะเฉพาะสำหรับ Wazuh (9 Skills):** การสืบค้น Wazuh MCP, การเขียน Rules & Decoders, การสืบสวน FIM (File Integrity Monitoring), การตรวจเช็ค SCA, การตรวจจับ Malware, การวิเคราะห์ Windows Sysmon, การตรวจจับ Cloud & Containers, การใช้งาน Active Response และการตรวจสุขภาพแพลตฟอร์ม
+- **Playbooks การรับมือเหตุการณ์ (7 Playbooks):** Brute Force, Lateral Movement, Privilege Escalation, Ransomware, Suspicious PowerShell, Data Exfiltration และ Vulnerability Spike
+- **มาตรฐานสากลที่รองรับ:** NIST CSF 2.0, NIST SP 800-61r3, NIST SP 800-53r5, MITRE ATT&CK / D3FEND, CIS Controls v8.1, ISO/IEC 27001:2022, PCI DSS v4.0.1, SANS PICERL, CISA KEV และ OWASP LLM Top 10
+
+---
+
+## Quick Start (เริ่มต้นใช้งานด่วน)
+
+### 1. โหมดทดลองใช้งาน (Demo Mode)
+รันระบบเพื่อทดสอบฟังก์ชันทั้งหมดได้ทันทีโดยไม่ต้องต่อกับ Wazuh จริง และไม่ต้องใช้ API Key ของ LLM (ระบบจะจำลอง Wazuh Fleet และเคสจำลองให้ในตัว):
 
 ```bash
-git clone https://github.com/gensecaihq/Wazuh-Autopilot.git && cd Wazuh-Autopilot
+git clone https://github.com/gensecaihq/Wazuh-Autopilot.git
+cd Wazuh-Autopilot
 docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d --build
-open http://localhost:8480     # admin@autopilot.local / Autopilot!2026
+```
+เปิดเว็บเบราว์เซอร์ไปที่: **`http://localhost:8480`**  
+- **อีเมล:** `admin@autopilot.local`
+- **รหัสผ่าน:** `Autopilot!2026`
+
+---
+
+### 2. โหมดใช้งานจริง (Production Setup)
+
+1. คัดลอกไฟล์การตั้งค่าสภาพแวดล้อม:
+   ```bash
+   cp .env.example .env
+   ```
+2. แก้ไขไฟล์ `.env` ระบุข้อมูลการเชื่อมต่อไปยัง **Wazuh MCP Server** และ **Model Provider**:
+   ```env
+   WAZUH_MCP_URL=http://<wazuh-mcp-host>:3000
+   WAZUH_MCP_API_KEY=<wazuh-mcp-api-key>
+   
+   MODEL_PROVIDER=openai   # หรือ bedrock, anthropic, ollama, vllm, litellm
+   MODEL_ID=gpt-4o         # หรือ claude-3-7-sonnet, qwen2.5, ฯลฯ
+   MODEL_API_KEY=<your-api-key>
+   ```
+3. สั่งรันระบบ:
+   ```bash
+   docker compose up -d
+   ```
+4. เข้าใช้งานผ่านเบราว์เซอร์ที่พอร์ต `8480` เพื่อเข้าสู่ **Setup Wizard** ในการสร้างบัญชีผู้ดูแลระบบคนแรก
+
+---
+
+## โมเดล AI ที่รองรับ (Model Providers)
+
+- **Cloud Providers:** Amazon Bedrock (พร้อม Guardrails), Anthropic Claude, OpenAI / OpenAI-Compatible endpoints
+- **Local & Self-Hosted:** Ollama, vLLM, NVIDIA NIM (Nemotron), LiteLLM Proxy
+- สามารถกำหนดโมเดลหลักสำหรับทั้งระบบ (Swarm-wide Default) และตั้งค่า Overrides แยกเป็นราย Agent ได้อย่างอิสระ
+
+---
+
+## โครงสร้างโปรเจกต์ (Repository Layout)
+
+```
+Wazuh-Autopilot/
+├── backend/            # FastAPI + Strands Swarm Platform, Policy Engine, Executor (Python 3.12)
+│   ├── app/
+│   │   ├── api/        # REST APIs (Auth, Alerts, Cases, Swarm, Admin, Ops)
+│   │   ├── swarm/      # การสร้าง Agent, เครื่องมือ Platform, Telemetry, LLM Providers
+│   │   └── skills/     # คลัง 37 ทักษะความเชี่ยวชาญ (SKILL.md)
+│   └── tests/          # ชุดทดสอบอัตโนมัติ (pytest)
+├── ui/                 # Web Console สร้างด้วย React + TypeScript + Vite + Tailwind CSS
+├── mock-wazuh/         # เซิร์ฟเวอร์จำลอง Wazuh MCP สำหรับการทดสอบและ Demo
+├── litellm/            # การตั้งค่า LiteLLM Proxy
+└── docs/               # เอกสารสถาปัตยกรรมและการติดตั้งอย่างละเอียด
 ```
 
-The demo runs against a simulated Wazuh fleet (`mock-wazuh/`: same tools and schemas as the real MCP server, live alerts, two planted compromises) and a scripted demo model, so it needs neither Wazuh nor an LLM key. Tool calls, policy decisions, approvals, execution and verification are all real. To see real reasoning, pick a model in **Settings → Models**.
+---
 
-For production, `cp .env.example .env`, point it at your Wazuh MCP Server and model provider, and run `docker compose up -d`. The first visit opens the setup wizard. See [docs/QUICKSTART.md](docs/QUICKSTART.md) and [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+## เอกสารอ้างอิงเพิ่มเติม (Documentation)
 
-Before enabling active response: the MCP key needs `wazuh:write` scope, and `isolate_host`, `kill_process` and `quarantine_file` rely on active-response scripts that don't ship with Wazuh, so deploy them on your agents first ([details](docs/AUTONOMY_AND_APPROVALS.md#action-catalog)).
+- [QUICKSTART.md](docs/QUICKSTART.md) — คู่มือเริ่มต้นใช้งานอย่างรวดเร็ว
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) — สถาปัตยกรรมระบบ เส้นทางการไหลของข้อมูล และขอบเขตความปลอดภัย
+- [DEPLOYMENT.md](docs/DEPLOYMENT.md) — การ Deploy ในสภาพแวดล้อมจริง การรับ Ingestion และการบำรุงรักษา
+- [AGENTS_AND_SKILLS.md](docs/AGENTS_AND_SKILLS.md) — เจาะลึกบทบาทของ 13 Agents และ 37 Skills
+- [AUTONOMY_AND_APPROVALS.md](docs/AUTONOMY_AND_APPROVALS.md) — การตั้งค่านโยบาย Autonomy และกระบวนการอนุมัติคำสั่ง
+- [MODEL_PROVIDERS.md](docs/MODEL_PROVIDERS.md) — การเชื่อมต่อ LLM หลากหลายค่าย และการรันแบบ Air-gapped
+- [MCP_INTEGRATION.md](docs/MCP_INTEGRATION.md) — การติดตั้งและเชื่อมต่อกับ Wazuh MCP Server
+- [API.md](docs/API.md) — เอกสาร REST API และ OpenAPI Specification
 
-**Upgrading from 1.x:** 3.0 replaces the Node Runtime Service and the OpenClaw, Hermes and NemoClaw profiles with the Strands platform, and there's no in-place migration. Deploy 3.0 next to your existing install, point it at the same Wazuh MCP Server, and retire the old one once you're happy. Details in the [changelog](CHANGELOG.md).
+---
 
-## What you get
+## ใบอนุญาต (License)
 
-| | |
-|---|---|
-| **Agent swarm** | SOC Commander, Tier 1–3 analysts, CTI analyst, threat hunter, vulnerability manager, IR lead, SecOps engineer, detection engineer, GRC analyst, Wazuh platform engineer and SOC manager. Workflows run as a Strands `Swarm` (agents hand off to each other) or a `Graph` (fixed pipeline). |
-| **Skills** | 37 [Agent Skills](https://agentskills.io) (`SKILL.md`): 9 Wazuh-specific skills (MCP querying, rules and decoders, FIM, SCA, malware, Windows/Sysmon, cloud and containers, active response, platform health), 7 incident-response playbooks (brute force, lateral movement, privilege escalation, ransomware, suspicious PowerShell, data exfiltration, vulnerability spike). Agents load them on demand. Every Wazuh rule ID the skills cite is checked against the official Wazuh 4.14 ruleset in CI. |
-| **Standards** | NIST CSF 2.0, SP 800-61r3, SP 800-53r5, MITRE ATT&CK and D3FEND, CIS v8.1, ISO/IEC 27001:2022, PCI DSS v4.0.1, SANS PICERL, CISA KEV / FIRST EPSS / SSVC, Sigma, OWASP LLM Top 10. |
-| **Autonomy policy** | Four levels: observe, recommend, supervised, autonomous. Plus per-action rules (confidence floor, hourly budget), per-agent caps, protected targets, a two-person rule and a business-hours limit. Critical actions always need a human. |
-| **Safe by construction** | Agents never receive state-changing Wazuh tools: the MCP tool filter and a pre-tool hook both block them. The platform runs approved actions, verifies them with `wazuh_check_*`, and can roll them back. |
-| **Console** | Command center, alerts, incidents, approvals, agent roster, swarm topology, skills, workflows, agent playground/debugger, evals, run traces, metrics, agent health, policy, standards coverage, audit log, settings, users/roles/API tokens, setup wizard. |
-| **Models** | Amazon Bedrock (with Guardrails), Anthropic, OpenAI-compatible, NVIDIA NIM (Nemotron), vLLM, LiteLLM, Ollama. Swarm-wide default with per-agent overrides. |
-| **Operations** | RBAC (5 roles), audit log, Postgres, OpenTelemetry export, Prometheus `/metrics`, `strands-agents-evals` suites, restart recovery, trace retention. |
-
-## How it works
-
-```
-Wazuh ──► Wazuh MCP Server ◄──────────────── agents (read + verify tools only)
-              ▲      │ alerts (poll or webhook)
-              │      ▼
-              │   Autopilot ── incidents ──► Strands swarm: triage → correlation → investigation → CTI → IR lead
-              │      │                                                   │ propose_action
-              │      ▼                                                   ▼
-              └── executor ◄── approved ◄── autonomy policy ── approvals queue (humans)
-                     └── verify (wazuh_check_*) · audit · rollback
-```
-
-Details in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-
-## Repository layout
-
-```
-backend/        FastAPI + Strands swarm, policy engine, executor (Python 3.12)
-  app/skills/   37 SKILL.md skills
-  tests/        pytest suite
-ui/             React + TypeScript console
-mock-wazuh/     simulated Wazuh MCP server for demos and tests
-litellm/        LiteLLM proxy config (compose profile)
-docs/           documentation
-```
-
-## Documentation
-
-| | |
-|---|---|
-| [QUICKSTART.md](docs/QUICKSTART.md) | Demo and first production install |
-| [DEPLOYMENT.md](docs/DEPLOYMENT.md) | Production deployment, ingestion, operations |
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, data flow, security boundaries |
-| [AGENTS_AND_SKILLS.md](docs/AGENTS_AND_SKILLS.md) | Roster, skills, workflows, standards |
-| [AUTONOMY_AND_APPROVALS.md](docs/AUTONOMY_AND_APPROVALS.md) | Autonomy levels, action rules, approvals, execution and verification |
-| [MODEL_PROVIDERS.md](docs/MODEL_PROVIDERS.md) | Bedrock, Anthropic, OpenAI-compatible, NVIDIA NIM, vLLM, LiteLLM, Ollama, air-gapped |
-| [MCP_INTEGRATION.md](docs/MCP_INTEGRATION.md) | Connecting the Wazuh MCP Server |
-| [TAILSCALE_MANDATORY.md](docs/TAILSCALE_MANDATORY.md) | Network isolation |
-| [API.md](docs/API.md) | REST API (OpenAPI at `/api/docs`) |
-| [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Common problems |
-
-## Development
-
-```bash
-cd backend && python3.12 -m venv .venv && . .venv/bin/activate
-pip install -r requirements-dev.txt && pytest -q
-cd ../ui && npm ci && npm run build
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md). The PyPI package is `strands-agents`: `pip install strands` installs an unrelated library, and `strands-evals` isn't the official evals package (`strands-agents-evals` is).
-
-## Acknowledgments
-
-Thanks to [**@idrone3d**](https://github.com/idrone3d) for thorough field testing on self-hosted hardware and the findings in [issue #33](https://github.com/gensecaihq/Wazuh-Autopilot/issues/33): idle inference cost from timer-driven agents, new alerts being grouped into closed cases, and proposals surviving expiry across restarts. The platform has no heartbeat polling: agents run on incidents, and the scheduled workflows (hunts, sweeps, briefings, platform-health checks; about a dozen runs a day by default) can be disabled or rescheduled in Workflows. It groups alerts only into open incidents and stores proposal expiry in the database.
-
-## Related projects
-
-| Project | Description |
-|---|---|
-| [Wazuh MCP Server](https://github.com/gensecaihq/Wazuh-MCP-Server) | MCP bridge for the Wazuh API (55 tools, RBAC, audit logging) |
-| [Strands Agents](https://strandsagents.com) | Open-source agent SDK the swarm is built on |
-
-## License
-
-MIT, see [LICENSE](LICENSE).
+โปรเจกต์นี้เผยแพร่ภายใต้สัญญาอนุญาต **MIT License** ดูรายละเอียดเพิ่มเติมได้ที่ไฟล์ [LICENSE](LICENSE)
