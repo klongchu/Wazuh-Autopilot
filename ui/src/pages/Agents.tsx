@@ -26,7 +26,7 @@ export default function Agents() {
                 <span className="text-fg">{q.data.filter((a) => a.enabled).length}</span> enabled
               </span>
               <span>
-                <span className="text-accent">{q.data.filter((a) => a.status === "running").length}</span> running
+                <span className="text-accent-text">{q.data.filter((a) => a.status === "running").length}</span> running
               </span>
             </div>
           )
@@ -62,9 +62,10 @@ export function AgentCard({ a }: { a: Agent }) {
             <span className="truncate text-title-sm">{a.name}</span>
           </div>
           <div className="mt-0.5 flex items-center gap-2 text-xs text-muted">
-            <span className="font-medium" style={{ color: a.avatar_color }}>
-              {a.codename}
-            </span>
+            {/* The agent's colour lives on its avatar, not on this text: avatar_color
+                comes from the API tuned for the dark theme and drops to ~2.1:1 on the
+                light card. The avatar beside it already carries the identity cue. */}
+            <span className="font-medium text-fg">{a.codename}</span>
             <span>·</span>
             <span className="uppercase">{a.tier}</span>
             <span>·</span>
@@ -87,7 +88,7 @@ export function AgentCard({ a }: { a: Agent }) {
       </div>
       <div className="mt-2 flex flex-wrap gap-1">
         {a.standards.slice(0, 3).map((s) => (
-          <span key={s.id} className="inline-flex items-center rounded-md border border-info/25 bg-info/5 px-1.5 py-0.5 text-micro text-info">
+          <span key={s.id} className="inline-flex items-center rounded-md border border-info/25 bg-info/5 px-1.5 py-0.5 text-micro text-info-text">
             {s.name}
           </span>
         ))}

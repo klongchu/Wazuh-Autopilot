@@ -41,14 +41,19 @@ would not follow.
 
 ### The `*-text` rule
 
-The base status hues are tuned for **fills and borders**, where WCAG only asks
-for 3:1. As text on a card they fail 4.5:1 in the light theme. So:
+The base hues — the four status colours **and `accent`** — are tuned for **fills
+and borders**, where WCAG only asks for 3:1. As text on a card they fail 4.5:1
+in the light theme (`accent` on white measures 3.02:1). So:
 
 - fill or border → `bg-danger/10`, `border-danger/30`
 - the label inside it → `text-danger-text`
 
-Both themes define `--danger-text`; in dark mode it equals the base hue, in
-light mode it is darkened. Writing `text-danger` on a light background is a bug.
+Both themes define `--danger-text` and `--accent-text`; in dark mode each equals
+its base hue, in light mode it is darkened. Writing `text-danger` or
+`text-accent` on a light background is a bug.
+
+The exception is an **icon or chart stroke**, which only owes 3:1 — `text-danger`
+on an `<svg>` is correct and should stay.
 
 ## 2. Contrast floors
 
@@ -137,8 +142,10 @@ Patterns worth following:
   branches for you. Use it rather than hand-rolling `isLoading ? … : …` — that
   is how pages end up with three different spinners.
 - **`DataTable`** gives sortable headers (`aria-sort`), consistent `.th`/`.td`
-  padding, and keyboard-operable rows. Pass `rowLabel` whenever you pass
-  `onRowClick`, so the row has an accessible name.
+  padding, and keyboard-operable rows. A row with `onRowClick` takes its
+  accessible name from its own cells — deliberately, so do not add an
+  `aria-label` to it: a name that does not contain the visible text breaks
+  WCAG 2.5.3 (label-in-name) for anyone driving the table by voice.
 - **`Field`** owns the label, hint and error for one control. Pass `error` and
   it wires `aria-invalid`, `aria-describedby` and a `role="alert"` message to
   the child automatically.

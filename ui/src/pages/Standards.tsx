@@ -52,7 +52,7 @@ function StandardDrawer({ id, onClose }: { id: string | null; onClose: () => voi
         <div className="space-y-4">
           <p className="text-sm text-muted">{s.description}</p>
           {s.url && (
-            <a href={s.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-accent hover:underline">
+            <a href={s.url} target="_blank" rel="noreferrer" className="inline-flex min-h-6 items-center gap-1 text-sm text-accent-text hover:underline">
               Reference <ExternalLink className="h-3.5 w-3.5" />
             </a>
           )}
@@ -62,7 +62,7 @@ function StandardDrawer({ id, onClose }: { id: string | null; onClose: () => voi
               rowKey={(c) => c.id}
               dense
               columns={[
-                { key: "id", header: "Control", cell: (c) => <span className="whitespace-nowrap font-mono text-xs text-accent">{c.id}</span>, sort: (c) => c.id },
+                { key: "id", header: "Control", cell: (c) => <span className="whitespace-nowrap font-mono text-xs text-accent-text">{c.id}</span>, sort: (c) => c.id },
                 { key: "title", header: "Title", cell: (c) => c.title },
                 {
                   key: "cov",
@@ -77,7 +77,7 @@ function StandardDrawer({ id, onClose }: { id: string | null; onClose: () => voi
                         ))}
                       </div>
                     ) : (
-                      <span className="text-xs text-warn">gap</span>
+                      <span className="text-xs text-warn-text">gap</span>
                     ),
                   sort: (c) => c.covered_by.length,
                 },

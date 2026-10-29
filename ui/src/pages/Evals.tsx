@@ -59,7 +59,7 @@ export default function Evals() {
 
 function ScorePill({ score }: { score: number | null }) {
   if (score === null || score === undefined) return <span className="text-xs text-subtle">—</span>;
-  const tone = score >= 0.85 ? "text-success border-success/30 bg-success/10" : score >= 0.6 ? "text-warn border-warn/30 bg-warn/10" : "text-danger border-danger/30 bg-danger/10";
+  const tone = score >= 0.85 ? "text-success-text border-success/30 bg-success/10" : score >= 0.6 ? "text-warn-text border-warn/30 bg-warn/10" : "text-danger-text border-danger/30 bg-danger/10";
   return <span className={cn("rounded-md border px-2 py-0.5 text-xs", tone)}>{fmtPct(score, 0, true)}</span>;
 }
 

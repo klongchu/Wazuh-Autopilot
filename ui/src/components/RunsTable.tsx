@@ -40,7 +40,7 @@ export function RunsTable({ runs, hideCase }: { runs: RunSummary[]; hideCase?: b
     { key: "tools", header: "Tool calls", cell: (r) => r.tool_calls, sort: (r) => r.tool_calls },
     { key: "tokens", header: "Tokens", cell: (r) => fmtNum(r.tokens_in + r.tokens_out), sort: (r) => r.tokens_in + r.tokens_out },
     { key: "cost", header: "Cost", cell: (r) => fmtUsd(r.cost_usd), sort: (r) => r.cost_usd },
-    { key: "err", header: "Errors", cell: (r) => (r.errors ? <span className="text-danger">{r.errors}</span> : <span className="text-subtle">0</span>), sort: (r) => r.errors },
+    { key: "err", header: "Errors", cell: (r) => (r.errors ? <span className="text-danger-text">{r.errors}</span> : <span className="text-subtle">0</span>), sort: (r) => r.errors },
   ];
   return <DataTable rows={runs} columns={cols} rowKey={(r) => r.id} onRowClick={(r) => navigate(`/runs/${r.id}`)} initialSort={{ key: "started", dir: "desc" }} empty={<p className="p-8 text-center text-sm text-muted">No runs yet.</p>} />;
 }

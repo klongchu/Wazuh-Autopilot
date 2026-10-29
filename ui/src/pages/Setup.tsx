@@ -125,7 +125,9 @@ export default function Setup() {
   return (
     <div className="min-h-full bg-bg">
       <div className="absolute inset-x-0 top-0 h-80" style={{ background: "radial-gradient(ellipse 50% 100% at 50% 0%, rgb(var(--glow) / .10), transparent)" }} />
-      <div className="relative mx-auto max-w-3xl px-4 py-10">
+      {/* <main>: first-run setup renders outside the app shell, so the landmark
+          has to come from here (same reason as Login). */}
+      <main className="relative mx-auto max-w-3xl px-4 py-10">
         <div className="flex items-center justify-between">
           <Logo />
           <span className="text-xs text-muted">First-run configuration</span>
@@ -138,7 +140,7 @@ export default function Setup() {
                 onClick={() => i < step && setStep(i)}
                 className={cn(
                   "flex items-center gap-2 whitespace-nowrap rounded-full border px-3 py-1 text-xs",
-                  i === step ? "border-accent/50 bg-accent/10 text-accent" : i < step ? "border-line bg-card2 text-fg" : "border-line text-subtle",
+                  i === step ? "border-accent/50 bg-accent/10 text-accent-text" : i < step ? "border-line bg-card2 text-fg" : "border-line text-subtle",
                 )}
               >
                 <span className={cn("flex h-4 w-4 items-center justify-center rounded-full text-micro", i < step ? "bg-success text-accent-fg" : "bg-line")}>
@@ -288,7 +290,7 @@ export default function Setup() {
             )}
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
@@ -324,13 +326,13 @@ export function WazuhResult({ r }: { r: WazuhTestResult }) {
           <span>{r.tools_total} tools</span>
           <span>{r.tools_read} read</span>
           <span>{r.tools_write} write</span>
-          <span className={r.write_scope ? "text-success" : "text-warn"}>{r.write_scope ? "wazuh:write granted" : "read-only key"}</span>
+          <span className={r.write_scope ? "text-success-text" : "text-warn-text"}>{r.write_scope ? "wazuh:write granted" : "read-only key"}</span>
         </div>
       ) : (
         <div className="mt-1 break-words text-xs text-muted">{r.error}</div>
       )}
       {r.ok && !r.write_scope && (
-        <div className="mt-2 text-xs text-warn">Response actions can't execute with a read-only key. Agents can still triage and propose actions.</div>
+        <div className="mt-2 text-xs text-warn-text">Response actions can't execute with a read-only key. Agents can still triage and propose actions.</div>
       )}
     </div>
   );

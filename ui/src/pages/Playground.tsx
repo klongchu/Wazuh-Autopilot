@@ -58,7 +58,12 @@ export default function Playground() {
     [subscribe],
   );
 
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [messages, busy]);
+  // Braces, not a concise body: a smooth scrollIntoView resolves to a Promise in
+  // current Chrome, and returning it from an effect makes React treat it as the
+  // cleanup function and throw on unmount.
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, busy]);
 
   // Fallback if SSE is unavailable: poll the session while busy.
   useEffect(() => {
@@ -117,6 +122,7 @@ export default function Playground() {
         right={
           <>
             <Select
+              aria-label="Agent"
               className="w-60"
               value={agentId}
               disabled={!!session}
@@ -196,7 +202,7 @@ export default function Playground() {
                 }
               }}
             />
-            <button className="btn-primary h-[42px]" disabled={busy || !input.trim() || !agentId}>
+            <button type="submit" aria-label="Send message" className="btn-primary min-h-[42px]" disabled={busy || !input.trim() || !agentId}>
               <Send className="h-4 w-4" />
             </button>
           </form>
@@ -224,7 +230,7 @@ function StepRow({ e }: { e: SseEvent }) {
   const d = e.data;
   const kind = String(d.kind ?? (e.type === "run.finished" ? "finished" : "step"));
   const tone =
-    kind === "tool" ? "text-info border-info/30 bg-info/5" : kind === "model" ? "text-accent border-accent/30 bg-accent/5" : kind === "handoff" ? "text-success border-success/30 bg-success/5" : kind === "guardrail" ? "text-warn border-warn/30 bg-warn/5" : "text-muted border-line bg-card2";
+    kind === "tool" ? "text-info-text border-info/30 bg-info/5" : kind === "model" ? "text-accent-text border-accent/30 bg-accent/5" : kind === "handoff" ? "text-success-text border-success/30 bg-success/5" : kind === "guardrail" ? "text-warn-text border-warn/30 bg-warn/5" : "text-muted border-line bg-card2";
   const status = typeof d.status === "string" ? d.status : null;
   return (
     <div className="rounded-lg border border-line bg-deep/40">
@@ -232,7 +238,7 @@ function StepRow({ e }: { e: SseEvent }) {
         <span className={cn("rounded border px-1.5 py-0.5 text-micro uppercase", tone)}>{kind}</span>
         <span className="min-w-0 flex-1 truncate font-mono text-meta">{String(d.name ?? d.agent_id ?? e.type)}</span>
         {typeof d.duration_ms === "number" && <span className="text-micro text-subtle">{fmtMs(d.duration_ms)}</span>}
-        {status && status !== "ok" && <span className={cn("text-micro", status === "error" || status === "failed" ? "text-danger" : "text-warn")}>{status}</span>}
+        {status && status !== "ok" && <span className={cn("text-micro", status === "error" || status === "failed" ? "text-danger-text" : "text-warn-text")}>{status}</span>}
       </button>
       {open && (
         <div className="border-t border-line p-2">

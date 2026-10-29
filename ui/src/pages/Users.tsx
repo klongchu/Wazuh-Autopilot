@@ -38,14 +38,14 @@ export default function Users() {
     { key: "last", header: "Last login", cell: (u) => <span className="text-muted">{relTime(u.last_login_at)}</span>, sort: (u) => u.last_login_at ?? "" },
     {
       key: "act",
-      header: "",
+      header: <span className="sr-only">Row actions</span>,
       cell: (u) => (
         <div className="flex justify-end gap-1">
-          <button className="btn-ghost btn-sm" onClick={() => setEdit(u)}>
+          <button type="button" aria-label={`Edit ${u.name}`} className="btn-ghost btn-sm" onClick={() => setEdit(u)}>
             <Pencil className="h-3.5 w-3.5" />
           </button>
           {u.id !== me?.id && (
-            <button className="btn-ghost btn-sm hover:text-danger" onClick={() => setDel(u)}>
+            <button type="button" aria-label={`Deactivate ${u.name}`} className="btn-ghost btn-sm hover:text-danger" onClick={() => setDel(u)}>
               <UserX className="h-3.5 w-3.5" />
             </button>
           )}

@@ -93,9 +93,10 @@ function CaseHeader({ c }: { c: CaseT }) {
       <div className="mt-3 flex flex-wrap items-center gap-3">
         {editable ? (
           <>
-            <Select className="w-40" value={c.severity} onChange={(v) => patch({ severity: v as Severity })} options={SEVERITIES.map((s) => ({ value: s, label: `Severity: ${s}` }))} />
-            <Select className="w-48" value={c.status} onChange={(v) => patch({ status: v as CaseStatus })} options={STATUSES.map((s) => ({ value: s, label: `Status: ${s.replace("_", " ")}` }))} />
+            <Select aria-label="Severity" className="w-40" value={c.severity} onChange={(v) => patch({ severity: v as Severity })} options={SEVERITIES.map((s) => ({ value: s, label: `Severity: ${s}` }))} />
+            <Select aria-label="Status" className="w-48" value={c.status} onChange={(v) => patch({ status: v as CaseStatus })} options={STATUSES.map((s) => ({ value: s, label: `Status: ${s.replace("_", " ")}` }))} />
             <Select
+              aria-label="Assignee"
               className="w-52"
               value={c.assignee?.id ?? ""}
               onChange={(v) => patch({ assignee_id: v || null })}
@@ -170,7 +171,7 @@ function RunWorkflowMenu({ caseId }: { caseId: string }) {
 }
 
 function Overview({ c, onTab }: { c: CaseT; onTab: (t: Tab) => void }) {
-  const roleTone: Record<string, string> = { attacker: "text-danger", victim: "text-accent", observed: "text-muted" };
+  const roleTone: Record<string, string> = { attacker: "text-danger-text", victim: "text-accent-text", observed: "text-muted" };
   return (
     <>
       <Card>
@@ -181,7 +182,7 @@ function Overview({ c, onTab }: { c: CaseT; onTab: (t: Tab) => void }) {
             <div className="mt-4 flex flex-wrap gap-1.5">
               {c.mitre.map((m) => (
                 <span key={m.technique_id} className="chip">
-                  <span className="font-mono text-accent">{m.technique_id}</span> {m.name}
+                  <span className="font-mono text-accent-text">{m.technique_id}</span> {m.name}
                   <span className="text-subtle">· {m.tactic}</span>
                 </span>
               ))}
@@ -244,7 +245,7 @@ function Overview({ c, onTab }: { c: CaseT; onTab: (t: Tab) => void }) {
 
 function Timeline({ c }: { c: CaseT }) {
   const icon = { alert: Radio, agent: Bot, action: ClipboardCheck, comment: MessageSquare, status: AlertTriangle } as const;
-  const color = { alert: "text-accent", agent: "text-info", action: "text-success", comment: "text-muted", status: "text-warn" } as const;
+  const color = { alert: "text-accent-text", agent: "text-info-text", action: "text-success-text", comment: "text-muted", status: "text-warn-text" } as const;
   const items = [...c.timeline].sort((a, b) => b.ts.localeCompare(a.ts));
   return (
     <Card className="p-5">

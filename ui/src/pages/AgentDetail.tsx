@@ -37,7 +37,8 @@ export default function AgentDetail() {
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-normal tracking-tight">{a.name}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
-              <span style={{ color: a.avatar_color }}>{a.codename}</span>·<span className="uppercase">{a.tier}</span>·<span className="capitalize">{a.category}</span>·
+              {/* Not avatar_color: it is a dark-theme hue and fails contrast on the light card. */}
+              <span className="text-fg">{a.codename}</span>·<span className="uppercase">{a.tier}</span>·<span className="capitalize">{a.category}</span>·
               <span className="flex items-center gap-1.5">
                 <StatusDot value={a.enabled ? a.status : "disabled"} pulse={a.status === "running"} />
                 {a.enabled ? a.status : "disabled"}
@@ -107,7 +108,7 @@ function Profile({ a }: { a: AgentT }) {
           </div>
         </Card>
         <Card>
-          <CardHeader title="Skills" subtitle="Loaded on demand through the Strands AgentSkills plugin" right={<Link to="/skills" className="text-xs text-accent hover:underline">Library</Link>} />
+          <CardHeader title="Skills" subtitle="Loaded on demand through the Strands AgentSkills plugin" right={<Link to="/skills" className="inline-flex min-h-6 items-center text-xs text-accent-text hover:underline">Library</Link>} />
           <div className="flex flex-wrap gap-2 p-5 pt-3">
             {a.skills.map((s) => (
               <Link key={s.id} to={`/skills?open=${s.id}`} className="rounded-lg border border-line bg-card2/50 px-2.5 py-1.5 text-sm hover:border-accent/40">
@@ -136,7 +137,7 @@ function Profile({ a }: { a: AgentT }) {
           <CardHeader title="Standards" />
           <div className="flex flex-wrap gap-1.5 p-5 pt-3">
             {a.standards.map((s) => (
-              <Link key={s.id} to={`/standards?open=${s.id}`} className="rounded-md border border-info/25 bg-info/5 px-2 py-1 text-xs text-info hover:border-info/50">
+              <Link key={s.id} to={`/standards?open=${s.id}`} className="rounded-md border border-info/25 bg-info/5 px-2 py-1 text-xs text-info-text hover:border-info/50">
                 {s.name}
               </Link>
             ))}
@@ -202,7 +203,7 @@ function HealthTab({ a }: { a: AgentT }) {
       </div>
       {h.last_error && (
         <Card className="border-danger/30 p-4">
-          <div className="text-xs text-danger">Last error</div>
+          <div className="text-xs text-danger-text">Last error</div>
           <pre className="mt-1 whitespace-pre-wrap break-words font-mono text-xs text-fg/80">{h.last_error}</pre>
         </Card>
       )}
@@ -286,7 +287,7 @@ function Config({ a }: { a: AgentT }) {
                 key={l.id}
                 disabled={!editable}
                 onClick={() => setCap(l.id)}
-                className={cn("rounded-lg border px-2 py-2 text-sm", cap === l.id ? "border-accent/60 bg-accent/10 text-accent" : "border-line text-muted hover:text-fg")}
+                className={cn("rounded-lg border px-2 py-2 text-sm", cap === l.id ? "border-accent/60 bg-accent/10 text-accent-text" : "border-line text-muted hover:text-fg")}
               >
                 {l.label}
               </button>

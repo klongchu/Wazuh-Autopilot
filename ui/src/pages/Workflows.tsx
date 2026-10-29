@@ -93,7 +93,7 @@ function WorkflowDetail({ wf }: { wf: Workflow }) {
       </Card>
       <Card className="p-5">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-title-sm">Trigger</h3>
+          <h2 className="text-title-sm">Trigger</h2>
           <Toggle checked={enabled} onChange={setEnabled} disabled={!editable} label={enabled ? "Enabled" : "Disabled"} />
         </div>
         <div className="grid gap-4 md:grid-cols-3">

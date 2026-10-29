@@ -27,7 +27,7 @@ export default function Metrics() {
         subtitle="Swarm throughput, latency, errors and spend. Also exported at /metrics for Prometheus."
         right={
           <>
-            <Select className="w-48" value={agent} onChange={setAgent} options={[{ value: "", label: "All agents" }, ...(agents.data ?? []).map((a) => ({ value: a.id, label: a.codename }))]} />
+            <Select aria-label="Filter by agent" className="w-48" value={agent} onChange={setAgent} options={[{ value: "", label: "All agents" }, ...(agents.data ?? []).map((a) => ({ value: a.id, label: a.codename }))]} />
             <Segmented value={range} onChange={setRange} options={[{ value: "24h", label: "24h" }, { value: "7d", label: "7d" }]} />
           </>
         }
@@ -70,7 +70,7 @@ function BreakdownCard({ range }: { range: string }) {
       <CardHeader
         title="By agent"
         subtitle="Which agents drive volume and cost"
-        right={<Select className="w-40" value={metric} onChange={(v) => setMetric(v as MetricName)} options={METRICS.map((x) => ({ value: x.id, label: x.label }))} />}
+        right={<Select aria-label="Choose metric" className="w-40" value={metric} onChange={(v) => setMetric(v as MetricName)} options={METRICS.map((x) => ({ value: x.id, label: x.label }))} />}
       />
       <div className="p-3">
         {q.isLoading ? <Skeleton className="h-[280px]" /> : series.length ? <SeriesChart series={series} valueFormatter={m.fmt} height={280} area={false} /> : <p className="py-16 text-center text-sm text-muted">No per-agent data yet.</p>}

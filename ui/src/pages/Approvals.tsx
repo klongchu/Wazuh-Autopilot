@@ -48,7 +48,7 @@ export default function Approvals() {
       <PageBody>
         {tab === "history" && (
           <div className="flex justify-end">
-            <Select className="w-48" value={hist} onChange={setHist} options={HISTORY.map((s) => ({ value: s, label: s ? s.replace("_", " ") : "All outcomes" }))} />
+            <Select aria-label="Filter history by outcome" className="w-48" value={hist} onChange={setHist} options={HISTORY.map((s) => ({ value: s, label: s ? s.replace("_", " ") : "All outcomes" }))} />
           </div>
         )}
         <Async

@@ -66,7 +66,7 @@ export default function Skills() {
                   <p className="mt-2 line-clamp-2 text-sm text-muted">{s.description}</p>
                   <div className="mt-3 flex flex-wrap gap-1">
                     {s.standards.slice(0, 3).map((st) => (
-                      <span key={st.id} className="rounded-md border border-info/25 bg-info/5 px-1.5 py-0.5 text-micro text-info">
+                      <span key={st.id} className="rounded-md border border-info/25 bg-info/5 px-1.5 py-0.5 text-micro text-info-text">
                         {st.name}
                       </span>
                     ))}
@@ -155,7 +155,7 @@ function SkillDrawer({ id, onClose }: { id: string | null; onClose: () => void }
               <p className="text-sm text-muted">{s.description}</p>
               <div className="flex flex-wrap gap-1.5">
                 {s.standards.map((st) => (
-                  <span key={st.id} className="rounded-md border border-info/25 bg-info/5 px-2 py-0.5 text-xs text-info">
+                  <span key={st.id} className="rounded-md border border-info/25 bg-info/5 px-2 py-0.5 text-xs text-info-text">
                     {st.name}
                   </span>
                 ))}

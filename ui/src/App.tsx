@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { EventsProvider } from "@/lib/events";
 import { useSetupStatus } from "@/api/hooks";
 import { Layout } from "@/components/Layout";
-import { EmptyState, Spinner } from "@/components/ui";
+import { EmptyState, Spinner, useDocumentTitle } from "@/components/ui";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const Login = lazy(() => import("@/pages/Login"));
@@ -93,6 +93,8 @@ const LANDING_FALLBACKS: { path: string; perm: string }[] = [
 
 function NotFound() {
   const navigate = useNavigate();
+  // This screen has no PageHeader, so it has to set the tab title itself.
+  useDocumentTitle("Page not found");
   return (
     <EmptyState
       title="Page not found"
@@ -151,10 +153,10 @@ export default function App() {
           <Route path="workflows" element={g("workflows:read", <Workflows />)} />
           <Route path="playground" element={g("playground:use", <Playground />)} />
           <Route path="evals" element={g("evals:read", <Evals />)} />
-          <Route path="health" element={g("agents:read", <Health />)} />
+          <Route path="agent-health" element={g("agents:read", <Health />)} />
           <Route path="runs" element={g("runs:read", <Runs />)} />
           <Route path="runs/:id" element={g("runs:read", <RunDetail />)} />
-          <Route path="metrics" element={g("runs:read", <Metrics />)} />
+          <Route path="run-metrics" element={g("runs:read", <Metrics />)} />
           <Route path="policy" element={g("policy:read", <Policy />)} />
           <Route path="standards" element={g("standards:read", <Standards />)} />
           <Route path="audit" element={g("audit:read", <Audit />)} />

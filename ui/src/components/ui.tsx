@@ -27,7 +27,8 @@ export function CardHeader({
   return (
     <div className={cn("flex flex-wrap items-center justify-between gap-3 px-5 pt-4", className)}>
       <div className="min-w-0">
-        <h3 className="text-title-sm font-medium text-fg">{title}</h3>
+        {/* h2, not h3: PageHeader owns the page's h1, so a card title at h3 skips a level. */}
+        <h2 className="text-title-sm font-medium text-fg">{title}</h2>
         {subtitle && <p className="mt-0.5 text-xs text-muted">{subtitle}</p>}
       </div>
       {right && <div className="flex items-center gap-2">{right}</div>}
@@ -212,18 +213,22 @@ export function Segmented<T extends string>({
   onChange,
   options,
   size = "md",
+  "aria-label": ariaLabel,
 }: {
   value: T;
   onChange: (v: T) => void;
-  options: { value: T; label: ReactNode }[];
+  /** `ariaLabel` is required when `label` is an icon: an icon alone names nothing. */
+  options: { value: T; label: ReactNode; ariaLabel?: string }[];
   size?: "sm" | "md";
+  "aria-label"?: string;
 }) {
   return (
-    <div role="group" className="inline-flex rounded-lg border border-line bg-deep/50 p-0.5">
+    <div role="group" aria-label={ariaLabel} className="inline-flex rounded-lg border border-line bg-deep/50 p-0.5">
       {options.map((o) => (
         <button
           key={o.value}
           type="button"
+          aria-label={o.ariaLabel}
           aria-pressed={value === o.value}
           onClick={() => onChange(o.value)}
           className={cn(
@@ -383,9 +388,9 @@ export function Modal({
         )}
       >
         <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
-          <h3 id={titleId} className="text-base font-normal">
+          <h2 id={titleId} className="text-base font-normal">
             {title}
-          </h3>
+          </h2>
           <button type="button" className="icon-btn border-transparent bg-transparent" onClick={onClose} aria-label="Close">
             <X className="h-4 w-4" />
           </button>
@@ -434,9 +439,9 @@ export function Drawer({
       >
         <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
           <div className="min-w-0">
-            <h3 id={titleId} className="truncate text-base font-normal">
+            <h2 id={titleId} className="truncate text-base font-normal">
               {title}
-            </h3>
+            </h2>
             {subtitle && <div className="mt-0.5 text-xs text-muted">{subtitle}</div>}
           </div>
           <button type="button" className="icon-btn shrink-0" onClick={onClose} aria-label="Close">
@@ -609,7 +614,6 @@ export function DataTable<R>({
   columns,
   rowKey,
   onRowClick,
-  rowLabel,
   initialSort,
   empty,
   dense,
@@ -618,8 +622,6 @@ export function DataTable<R>({
   columns: Column<R>[];
   rowKey: (r: R) => string;
   onRowClick?: (r: R) => void;
-  /** Accessible name for a clickable row, e.g. "Open alert 12345". */
-  rowLabel?: (r: R) => string;
   initialSort?: { key: string; dir: "asc" | "desc" };
   empty?: ReactNode;
   dense?: boolean;
@@ -657,7 +659,7 @@ export function DataTable<R>({
                 {c.sort ? (
                   <button
                     type="button"
-                    className="btn-bare inline-flex items-center gap-1 hover:text-fg"
+                    className="btn-bare -my-2.5 inline-flex min-h-[2.75rem] items-center gap-1 py-2.5 hover:text-fg"
                     onClick={() =>
                       setSort((s) => (s?.key === c.key ? { key: c.key, dir: s.dir === "asc" ? "desc" : "asc" } : { key: c.key, dir: "desc" }))
                     }
@@ -700,7 +702,6 @@ export function DataTable<R>({
               }
               tabIndex={onRowClick ? 0 : undefined}
               role={onRowClick ? "button" : undefined}
-              aria-label={onRowClick ? rowLabel?.(r) : undefined}
               className={cn(
                 "border-b border-line/60 last:border-0",
                 onRowClick && "focus-ring cursor-pointer hover:bg-card2/60",
@@ -826,6 +827,7 @@ export function NumberInput({
   disabled,
   className,
   id,
+  "aria-label": ariaLabel,
   "aria-describedby": describedBy,
 }: {
   value: number;
@@ -836,6 +838,8 @@ export function NumberInput({
   disabled?: boolean;
   className?: string;
   id?: string;
+  /** Required outside a `Field`, which otherwise supplies the label via `id`. */
+  "aria-label"?: string;
   "aria-describedby"?: string;
 }) {
   const [draft, setDraft] = useState(String(value));
@@ -853,6 +857,7 @@ export function NumberInput({
   return (
     <input
       id={id}
+      aria-label={ariaLabel}
       aria-describedby={describedBy}
       type="number"
       inputMode="numeric"
@@ -877,6 +882,7 @@ export function Toggle({
   disabled,
   label,
   id,
+  "aria-label": ariaLabel,
   "aria-describedby": describedBy,
 }: {
   checked: boolean;
@@ -884,6 +890,8 @@ export function Toggle({
   disabled?: boolean;
   label?: ReactNode;
   id?: string;
+  /** Required when there is no visible `label`: a wrapping <label> does not name a <button>. */
+  "aria-label"?: string;
   "aria-describedby"?: string;
 }) {
   return (
@@ -893,6 +901,7 @@ export function Toggle({
         role="switch"
         id={id}
         aria-checked={checked}
+        aria-label={ariaLabel}
         aria-describedby={describedBy}
         disabled={disabled}
         onClick={() => onChange(!checked)}
@@ -922,6 +931,7 @@ export function Select({
   className,
   disabled,
   id,
+  "aria-label": ariaLabel,
   "aria-invalid": ariaInvalid,
   "aria-describedby": describedBy,
 }: {
@@ -931,6 +941,8 @@ export function Select({
   className?: string;
   disabled?: boolean;
   id?: string;
+  /** Required when the Select is not wrapped in a Field. */
+  "aria-label"?: string;
   "aria-invalid"?: boolean;
   "aria-describedby"?: string;
 }) {
@@ -938,6 +950,7 @@ export function Select({
     <div className={cn("relative", className)}>
       <select
         id={id}
+        aria-label={ariaLabel}
         aria-invalid={ariaInvalid}
         aria-describedby={describedBy}
         className="input appearance-none pr-8"

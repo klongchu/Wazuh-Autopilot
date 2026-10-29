@@ -23,9 +23,9 @@ export default function Runs() {
       <PageBody>
         <Card>
           <div className="flex flex-wrap items-center gap-2 border-b border-line p-3">
-            <Select className="w-40" value={status} onChange={(v) => set("status", v)} options={["", "queued", "running", "completed", "failed", "cancelled"].map((s) => ({ value: s, label: s || "All statuses" }))} />
-            <Select className="w-56" value={workflow_id} onChange={(v) => set("workflow_id", v)} options={[{ value: "", label: "All workflows" }, ...(wfs.data ?? []).map((w) => ({ value: w.id, label: w.name }))]} />
-            <Select className="w-48" value={agent_id} onChange={(v) => set("agent_id", v)} options={[{ value: "", label: "All agents" }, ...(agents.data ?? []).map((a) => ({ value: a.id, label: a.codename }))]} />
+            <Select aria-label="Filter by run status" className="w-40" value={status} onChange={(v) => set("status", v)} options={["", "queued", "running", "completed", "failed", "cancelled"].map((s) => ({ value: s, label: s || "All statuses" }))} />
+            <Select aria-label="Filter by workflow" className="w-56" value={workflow_id} onChange={(v) => set("workflow_id", v)} options={[{ value: "", label: "All workflows" }, ...(wfs.data ?? []).map((w) => ({ value: w.id, label: w.name }))]} />
+            <Select aria-label="Filter by agent" className="w-48" value={agent_id} onChange={(v) => set("agent_id", v)} options={[{ value: "", label: "All agents" }, ...(agents.data ?? []).map((a) => ({ value: a.id, label: a.codename }))]} />
             <span className="ml-auto text-xs text-muted">{runs.data ? `${runs.data.total} runs` : ""}</span>
           </div>
           <Async q={runs}>{(d) => <RunsTable runs={d.items} />}</Async>

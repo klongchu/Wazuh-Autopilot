@@ -49,7 +49,7 @@ export default function Login() {
           <Logo />
           <div className="max-w-md">
             <h1 className="text-4xl font-light leading-tight tracking-tight">
-              An agent swarm that runs your <span className="text-accent">Wazuh</span> SOC.
+              An agent swarm that runs your <span className="text-accent-text">Wazuh</span> SOC.
             </h1>
             <p className="mt-4 text-muted">
               Specialist AI agents triage, investigate and contain threats through the Wazuh MCP server, grounded in NIST, MITRE ATT&CK and CIS, with
@@ -77,7 +77,9 @@ export default function Login() {
         </div>
       </div>
 
-      <div className="flex items-center justify-center p-6">
+      {/* <main>, not a <div>: this screen renders outside the app shell, so it has to
+          provide the landmark itself or the sign-in form sits in no region at all. */}
+      <main className="flex items-center justify-center p-6">
         <form onSubmit={submit} className="w-full max-w-sm">
           <div className="mb-8 lg:hidden">
             <Logo />
@@ -134,7 +136,7 @@ export default function Login() {
             </button>
           </div>
         </form>
-      </div>
+      </main>
     </div>
   );
 }

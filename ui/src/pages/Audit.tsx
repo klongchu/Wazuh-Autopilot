@@ -46,7 +46,7 @@ export default function Audit() {
               <input className="input pl-9" placeholder="Actor" value={actor} onChange={(e) => setActor(e.target.value)} />
             </div>
             <input className="input max-w-[220px]" placeholder="Action (e.g. action.approved)" value={action} onChange={(e) => setAction(e.target.value)} />
-            <Select className="w-36" value={since} onChange={setSince} options={[{ value: "", label: "All time" }, { value: "1", label: "Last hour" }, { value: "24", label: "Last 24h" }, { value: "168", label: "Last 7 days" }]} />
+            <Select aria-label="Filter by time range" className="w-36" value={since} onChange={setSince} options={[{ value: "", label: "All time" }, { value: "1", label: "Last hour" }, { value: "24", label: "Last 24h" }, { value: "168", label: "Last 7 days" }]} />
             <button className="btn-secondary">Apply</button>
           </form>
           <Async q={q}>{(d) => <DataTable rows={d.items} columns={cols} rowKey={(e) => e.id} onRowClick={setSel} initialSort={{ key: "ts", dir: "desc" }} />}</Async>

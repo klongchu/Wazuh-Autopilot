@@ -346,7 +346,7 @@ export function WorldMap({ points, height = 340 }: { points: MapPoint[]; height?
               <span className="text-base leading-none">{flagEmoji(top.flag ?? top.key)}</span>
               <span className="max-w-[90px] truncate">{top.label}</span>
             </span>
-            <span className="text-success">↗</span>
+            <span className="text-success-text">↗</span>
           </div>
           <div className="mt-2 flex items-baseline justify-between">
             <span>

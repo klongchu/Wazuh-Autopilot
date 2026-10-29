@@ -32,7 +32,7 @@ export default function Health() {
     { key: "score", header: "Health", cell: (a) => <ScoreRing score={a.health.score} size={34} stroke={3} />, sort: (a) => a.health.score },
     { key: "status", header: "Status", cell: (a) => <StatusBadge value={a.enabled ? a.health.status : "disabled"} />, sort: (a) => a.health.status },
     { key: "runs", header: "Runs 24h", cell: (a) => fmtNum(a.health.runs_24h), sort: (a) => a.health.runs_24h },
-    { key: "err", header: "Error rate", cell: (a) => <span className={cn(a.health.error_rate > 0.1 && "text-danger")}>{fmtPct(a.health.error_rate, 1, true)}</span>, sort: (a) => a.health.error_rate },
+    { key: "err", header: "Error rate", cell: (a) => <span className={cn(a.health.error_rate > 0.1 && "text-danger-text")}>{fmtPct(a.health.error_rate, 1, true)}</span>, sort: (a) => a.health.error_rate },
     { key: "avg", header: "Avg latency", cell: (a) => fmtMs(a.health.avg_latency_ms), sort: (a) => a.health.avg_latency_ms },
     { key: "p95", header: "p95", cell: (a) => fmtMs(a.health.p95_latency_ms), sort: (a) => a.health.p95_latency_ms },
     { key: "tok", header: "Tokens 24h", cell: (a) => fmtNum(a.health.tokens_24h), sort: (a) => a.health.tokens_24h },
@@ -41,7 +41,7 @@ export default function Health() {
     {
       key: "lasterr",
       header: "Last error",
-      cell: (a) => (a.health.last_error ? <span className="line-clamp-1 max-w-[220px] text-xs text-danger" title={a.health.last_error}>{a.health.last_error}</span> : <span className="text-subtle">—</span>),
+      cell: (a) => (a.health.last_error ? <span className="line-clamp-1 max-w-[220px] text-xs text-danger-text" title={a.health.last_error}>{a.health.last_error}</span> : <span className="text-subtle">—</span>),
     },
   ];
 
@@ -63,7 +63,7 @@ export default function Health() {
                       </div>
                       <div className="mt-3 text-sm">{c.name}</div>
                       <div className="mt-0.5 flex items-center gap-2 text-xs">
-                        <span className={cn(c.status === "healthy" ? "text-success" : c.status === "degraded" ? "text-warn" : c.status === "down" ? "text-danger" : "text-muted")}>{c.status}</span>
+                        <span className={cn(c.status === "healthy" ? "text-success-text" : c.status === "degraded" ? "text-warn-text" : c.status === "down" ? "text-danger-text" : "text-muted")}>{c.status}</span>
                         {c.latency_ms !== null && <span className="text-subtle">{fmtMs(c.latency_ms)}</span>}
                       </div>
                       <div className="mt-2 line-clamp-2 text-micro text-subtle" title={c.detail}>

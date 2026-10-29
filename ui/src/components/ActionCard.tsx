@@ -59,7 +59,7 @@ export function ActionCard({ a, compact }: { a: Action; compact?: boolean }) {
           <div className="mt-1 text-xs text-muted">
             {!compact && (
               <>
-                <Link to={`/cases/${a.case_id}`} className="text-accent hover:underline">
+                <Link to={`/cases/${a.case_id}`} className="text-accent-text hover:underline">
                   {a.case_number}
                 </Link>{" "}
                 ·{" "}
@@ -67,7 +67,7 @@ export function ActionCard({ a, compact }: { a: Action; compact?: boolean }) {
             )}
             proposed by <span className="text-fg/80">{a.proposed_by}</span> · {relTime(a.created_at)} · confidence {fmtPct(a.confidence, 0, true)} · {a.autonomy}
             {a.status === "proposed" && a.expires_at && (
-              <span className="ml-1 inline-flex items-center gap-1 text-warn">
+              <span className="ml-1 inline-flex items-center gap-1 text-warn-text">
                 <Timer className="h-3 w-3" /> expires {relTime(a.expires_at)}
               </span>
             )}

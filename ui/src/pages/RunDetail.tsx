@@ -21,11 +21,11 @@ const KIND_COLOR: Record<Span["kind"], string> = {
 };
 const KIND_TEXT: Record<Span["kind"], string> = {
   run: "text-muted",
-  agent: "text-accent",
-  model: "text-info",
-  tool: "text-success",
-  handoff: "text-warn",
-  guardrail: "text-danger",
+  agent: "text-accent-text",
+  model: "text-info-text",
+  tool: "text-success-text",
+  handoff: "text-warn-text",
+  guardrail: "text-danger-text",
 };
 
 type Tab = "trace" | "output" | "input";
@@ -58,7 +58,7 @@ export default function RunDetail() {
         ].map((s) => (
           <Card key={s.k} className="p-3">
             <div className="text-micro text-muted">{s.k}</div>
-            <div className={cn("mt-0.5 text-lg", s.k === "Errors" && r.errors > 0 && "text-danger")}>{s.v}</div>
+            <div className={cn("mt-0.5 text-lg", s.k === "Errors" && r.errors > 0 && "text-danger-text")}>{s.v}</div>
           </Card>
         ))}
       </div>
@@ -103,7 +103,7 @@ function RunHeader({ r }: { r: Run }) {
             {r.case_id && (
               <>
                 ·
-                <Link to={`/cases/${r.case_id}`} className="text-accent hover:underline">
+                <Link to={`/cases/${r.case_id}`} className="inline-flex min-h-6 items-center text-accent-text hover:underline">
                   {r.case_number}
                 </Link>
               </>
@@ -152,7 +152,7 @@ function RunHeader({ r }: { r: Run }) {
           {r.handoffs.map((h, i) => (
             <span key={i} className="flex items-center gap-1.5" title={h.reason}>
               <ArrowRight className="h-3 w-3 text-subtle" />
-              <span className="chip text-accent">{h.to}</span>
+              <span className="chip text-accent-text">{h.to}</span>
             </span>
           ))}
         </div>
@@ -293,7 +293,7 @@ function Trace({ r }: { r: Run }) {
               </div>
               {sel.error && (
                 <div className="rounded-lg border border-danger/30 bg-danger/5 p-3">
-                  <div className="text-xs text-danger">Error</div>
+                  <div className="text-xs text-danger-text">Error</div>
                   <pre className="mt-1 whitespace-pre-wrap break-words font-mono text-micro">{sel.error}</pre>
                 </div>
               )}

@@ -33,7 +33,7 @@ export default function Account() {
           <Kv k="Permissions" v={<span className="text-xs text-muted">{user.permissions.length} granted</span>} />
         </Card>
         <Card className="space-y-4 p-5">
-          <h3 className="text-title-sm">Change password</h3>
+          <h2 className="text-title-sm">Change password</h2>
           <Field label="Current password" error={err("current", !!f.current)}>
             <input className="input" type="password" autoComplete="current-password" value={f.current} onChange={(e) => setF({ ...f, current: e.target.value })} />
           </Field>

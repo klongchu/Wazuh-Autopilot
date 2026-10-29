@@ -58,7 +58,7 @@ export default function Alerts() {
       header: "Incident",
       cell: (a) =>
         a.case_id ? (
-          <Link to={`/cases/${a.case_id}`} onClick={(e) => e.stopPropagation()} className="text-accent hover:underline">
+          <Link to={`/cases/${a.case_id}`} onClick={(e) => e.stopPropagation()} className="inline-flex min-h-6 items-center text-accent-text hover:underline">
             view
           </Link>
         ) : (
@@ -83,8 +83,8 @@ export default function Alerts() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" />
               <input className="input pl-9" placeholder="Search rule, endpoint, IP, user…" value={q} onChange={(e) => setQ(e.target.value)} />
             </form>
-            <Select className="w-40" value={severity} onChange={(v) => setParam("severity", v)} options={SEV.map((s) => ({ value: s, label: s ? s : "All severities" }))} />
-            <Select className="w-36" value={status} onChange={(v) => setParam("status", v)} options={STATUS.map((s) => ({ value: s, label: s ? s : "All statuses" }))} />
+            <Select aria-label="Filter by severity" className="w-40" value={severity} onChange={(v) => setParam("severity", v)} options={SEV.map((s) => ({ value: s, label: s ? s : "All severities" }))} />
+            <Select aria-label="Filter by status" className="w-36" value={status} onChange={(v) => setParam("status", v)} options={STATUS.map((s) => ({ value: s, label: s ? s : "All statuses" }))} />
             <span className="ml-auto text-xs text-muted">{list.data ? `${list.data.total.toLocaleString()} alerts` : ""}</span>
           </div>
           <Async q={list}>
@@ -94,7 +94,6 @@ export default function Alerts() {
                 columns={cols}
                 rowKey={(a) => a.id}
                 onRowClick={(a) => setOpenId(a.id)}
-                rowLabel={(a) => `Open alert ${a.rule_description || a.id}`}
                 initialSort={{ key: "ts", dir: "desc" }}
                 empty={
                   <EmptyState
@@ -183,7 +182,7 @@ function AlertDrawer({ id, onClose }: { id: string | null; onClose: () => void }
               <Kv
                 k="Incident"
                 v={
-                  <Link to={`/cases/${a.case_id}`} className="text-accent hover:underline">
+                  <Link to={`/cases/${a.case_id}`} className="inline-flex min-h-6 items-center text-accent-text hover:underline">
                     Open incident
                   </Link>
                 }
@@ -196,7 +195,7 @@ function AlertDrawer({ id, onClose }: { id: string | null; onClose: () => void }
               <div className="flex flex-wrap gap-1.5">
                 {a.mitre.map((m) => (
                   <span key={m.technique_id} className="chip">
-                    <span className="font-mono text-accent">{m.technique_id}</span> {m.name} · {m.tactic}
+                    <span className="font-mono text-accent-text">{m.technique_id}</span> {m.name} · {m.tactic}
                   </span>
                 ))}
               </div>

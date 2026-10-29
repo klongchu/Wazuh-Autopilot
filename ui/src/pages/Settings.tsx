@@ -165,7 +165,7 @@ function Section({ title, desc, children }: { title: string; desc?: string; chil
   return (
     <Card className="space-y-4 p-5">
       <div>
-        <h3 className="text-title-sm">{title}</h3>
+        <h2 className="text-title-sm">{title}</h2>
         {desc && <p className="mt-0.5 text-sm text-muted">{desc}</p>}
       </div>
       {children}
@@ -214,7 +214,7 @@ function WazuhTab({ s, set, editable }: { s: SettingsT; set: SetFn; editable: bo
                 key={t}
                 disabled={!editable}
                 onClick={() => set("wazuh", { toolsets: on ? s.wazuh.toolsets.filter((x) => x !== t) : [...s.wazuh.toolsets, t] })}
-                className={cn("rounded-lg border px-3 py-1.5 text-sm", on ? "border-accent/50 bg-accent/10 text-accent" : "border-line text-muted hover:text-fg")}
+                className={cn("rounded-lg border px-3 py-1.5 text-sm", on ? "border-accent/50 bg-accent/10 text-accent-text" : "border-line text-muted hover:text-fg")}
               >
                 {t}
               </button>

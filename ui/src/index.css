@@ -44,9 +44,11 @@
   --card2: 248 247 246;
   --line: 229 226 223;
   --fg: 24 21 22;
-  --muted: 110 104 107;
-  /* Darkened from 160 154 157 (2.75:1) to clear WCAG AA 4.5:1 on white. */
-  --subtle: 118 112 115;
+  /* Both are measured against --bg (246 245 244), the darkest surface either
+     sits on, not against white --card: the sidebar and page chrome use --bg,
+     and tuning for white alone left --subtle at 4.45:1 there. */
+  --muted: 96 90 93;
+  --subtle: 110 104 107;
   --accent: 240 110 20;
   --danger: 220 38 38;
   --success: 22 163 74;

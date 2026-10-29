@@ -88,7 +88,7 @@ function SummaryCard({ d }: { d?: DashboardSummary }) {
         { icon: <Siren className="h-4 w-4" />, tone: "danger" as const, value: fmtNum(d.kpis.incidents.value), label: "Incidents", delta: d.kpis.incidents.delta_pct, goodDown: true, to: "/cases" },
         { icon: <ShieldCheck className="h-4 w-4" />, tone: "success" as const, value: fmtNum(d.kpis.auto_contained.value), label: "Threats contained", delta: d.kpis.auto_contained.delta_pct, goodDown: false, to: "/approvals" },
         { icon: <Radio className="h-4 w-4" />, tone: "accent" as const, value: fmtNum(d.kpis.alerts.value), label: "Alerts", delta: d.kpis.alerts.delta_pct, goodDown: true, to: "/alerts" },
-        { icon: <Clock className="h-4 w-4" />, tone: "info" as const, value: `${fmtNum(d.kpis.mttr_minutes.value)}m`, label: "Mean time to respond", delta: d.kpis.mttr_minutes.delta_pct, goodDown: true, to: "/metrics" },
+        { icon: <Clock className="h-4 w-4" />, tone: "info" as const, value: `${fmtNum(d.kpis.mttr_minutes.value)}m`, label: "Mean time to respond", delta: d.kpis.mttr_minutes.delta_pct, goodDown: true, to: "/run-metrics" },
         { icon: <ClipboardCheck className="h-4 w-4" />, tone: "warn" as const, value: fmtNum(d.kpis.pending_approvals.value), label: "Pending approvals", delta: null, goodDown: true, to: "/approvals" },
       ]
     : [];
@@ -136,7 +136,7 @@ function SwarmStrip({ d }: { d?: DashboardSummary }) {
   return (
     <Card className="grid grid-cols-2 divide-line sm:grid-cols-3 lg:grid-cols-5 lg:divide-x">
       {items.map((i) => (
-        <Link to="/health" key={i.label} className="flex items-center gap-3 px-5 py-3.5 hover:bg-card2/40">
+        <Link to="/agent-health" key={i.label} className="flex items-center gap-3 px-5 py-3.5 hover:bg-card2/40">
           <i.icon className="h-4 w-4 text-accent" />
           <div>
             <div className="text-title-sm">{i.value}</div>
@@ -301,7 +301,7 @@ function MitreCard({ d }: { d?: DashboardSummary }) {
           <div key={r.technique_id}>
             <div className="flex items-center justify-between gap-2 text-sm">
               <span className="truncate">
-                <span className="mr-1.5 font-mono text-xs text-accent">{r.technique_id}</span>
+                <span className="mr-1.5 font-mono text-xs text-accent-text">{r.technique_id}</span>
                 {r.name}
               </span>
               <span className="text-muted">{fmtNum(r.count)}</span>

@@ -73,7 +73,7 @@ export default function Swarm() {
                   <div key={i} className="border-b border-line/50 py-1.5 text-xs last:border-0">
                     {typeof e.data.from === "string" && typeof e.data.to === "string" ? (
                       <>
-                        <span className="text-fg">{e.data.from}</span> → <span className="text-accent">{e.data.to}</span>
+                        <span className="text-fg">{e.data.from}</span> → <span className="text-accent-text">{e.data.to}</span>
                       </>
                     ) : (
                       describeEvent(e.type, e.data)

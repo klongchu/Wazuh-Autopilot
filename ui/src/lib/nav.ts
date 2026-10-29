@@ -57,9 +57,9 @@ export const NAV: { section: string; items: NavItem[] }[] = [
   {
     section: "Observability",
     items: [
-      { to: "/health", label: "Agent Health", icon: HeartPulse, perm: "agents:read" },
+      { to: "/agent-health", label: "Agent Health", icon: HeartPulse, perm: "agents:read" },
       { to: "/runs", label: "Runs & Traces", icon: Activity, perm: "runs:read" },
-      { to: "/metrics", label: "Metrics", icon: ChartLine, perm: "runs:read" },
+      { to: "/run-metrics", label: "Metrics", icon: ChartLine, perm: "runs:read" },
     ],
   },
   {

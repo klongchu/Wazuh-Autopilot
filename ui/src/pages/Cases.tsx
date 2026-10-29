@@ -53,7 +53,7 @@ export default function Cases() {
       key: "pending",
       header: "Actions",
       cell: (c) =>
-        c.pending_actions ? <span className="rounded-md border border-accent/30 bg-accent/10 px-1.5 text-xs text-accent">{c.pending_actions} pending</span> : <span className="text-subtle">—</span>,
+        c.pending_actions ? <span className="rounded-md border border-accent/30 bg-accent/10 px-1.5 text-xs text-accent-text">{c.pending_actions} pending</span> : <span className="text-subtle">—</span>,
       sort: (c) => c.pending_actions,
     },
     { key: "assignee", header: "Assignee", cell: (c) => c.assignee?.name ?? <span className="text-subtle">Unassigned</span> },
@@ -67,11 +67,12 @@ export default function Cases() {
         subtitle="Cases opened by the swarm from correlated Wazuh alerts"
         right={
           <Segmented
+            aria-label="Case layout"
             value={view}
             onChange={setView}
             options={[
-              { value: "table", label: <List className="h-4 w-4" /> },
-              { value: "board", label: <Columns3 className="h-4 w-4" /> },
+              { value: "table", label: <List className="h-4 w-4" />, ariaLabel: "Table view" },
+              { value: "board", label: <Columns3 className="h-4 w-4" />, ariaLabel: "Board view" },
             ]}
           />
         }
@@ -89,9 +90,9 @@ export default function Cases() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" />
               <input className="input pl-9" placeholder="Search incidents…" value={q} onChange={(e) => setQ(e.target.value)} />
             </form>
-            <Select className="w-40" value={severity} onChange={(v) => setParam("severity", v)} options={["", "critical", "high", "medium", "low"].map((s) => ({ value: s, label: s || "All severities" }))} />
+            <Select aria-label="Filter by severity" className="w-40" value={severity} onChange={(v) => setParam("severity", v)} options={["", "critical", "high", "medium", "low"].map((s) => ({ value: s, label: s || "All severities" }))} />
             {view === "table" && (
-              <Select className="w-40" value={status} onChange={(v) => setParam("status", v)} options={["", ...STATUSES].map((s) => ({ value: s, label: s ? s.replace("_", " ") : "All statuses" }))} />
+              <Select aria-label="Filter by status" className="w-40" value={status} onChange={(v) => setParam("status", v)} options={["", ...STATUSES].map((s) => ({ value: s, label: s ? s.replace("_", " ") : "All statuses" }))} />
             )}
           </div>
           <Async q={list}>
@@ -132,7 +133,7 @@ function Board({ cases }: { cases: Case[] }) {
                     <span>{c.alert_count} alerts</span>
                     <span>{relTime(c.updated_at)}</span>
                   </div>
-                  {c.pending_actions > 0 && <div className="mt-2 text-micro text-accent">{c.pending_actions} action(s) awaiting approval</div>}
+                  {c.pending_actions > 0 && <div className="mt-2 text-micro text-accent-text">{c.pending_actions} action(s) awaiting approval</div>}
                 </Link>
               ))}
               {!items.length && <div className="py-6 text-center text-xs text-subtle">Empty</div>}

@@ -25,7 +25,7 @@ export default function Roles() {
                       <div className="text-sm">{r.label}</div>
                       <div className="font-mono text-micro text-subtle">{r.id}</div>
                       <p className="mt-2 text-xs text-muted">{r.description}</p>
-                      <div className="mt-3 text-micro text-accent">{r.permissions.includes("*") ? "all permissions" : `${r.permissions.length} permissions`}</div>
+                      <div className="mt-3 text-micro text-accent-text">{r.permissions.includes("*") ? "all permissions" : `${r.permissions.length} permissions`}</div>
                     </Card>
                   ))}
                 </div>

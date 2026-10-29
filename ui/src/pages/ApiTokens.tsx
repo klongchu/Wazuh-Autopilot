@@ -26,9 +26,9 @@ export default function ApiTokens() {
     { key: "exp", header: "Expires", cell: (t) => <span className="text-muted">{t.expires_at ? fmtDateTime(t.expires_at) : "never"}</span>, sort: (t) => t.expires_at ?? "" },
     {
       key: "x",
-      header: "",
+      header: <span className="sr-only">Row actions</span>,
       cell: (t) => (
-        <button className="btn-ghost btn-sm hover:text-danger" onClick={() => setRevoke(t)}>
+        <button type="button" aria-label={`Revoke ${t.name}`} className="btn-ghost btn-sm hover:text-danger" onClick={() => setRevoke(t)}>
           <Trash2 className="h-3.5 w-3.5" />
         </button>
       ),

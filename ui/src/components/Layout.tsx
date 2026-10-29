@@ -304,7 +304,7 @@ function UserMenu() {
         <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-card2 text-muted">
           <UserIcon className="h-4 w-4" />
         </span>
-        <span className="hidden text-left leading-tight sm:block">
+        <span className="sr-only text-left leading-tight sm:not-sr-only sm:block">
           <span className="block text-caption">{user.name}</span>
           <span className="block text-micro text-muted">{user.email}</span>
         </span>
@@ -403,17 +403,17 @@ export function Layout() {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col bg-bg">
-        <header className="flex min-h-[60px] shrink-0 items-center gap-3 border-b border-line px-3 md:px-5">
+        <header className="flex min-h-[60px] shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-line px-3 py-2 md:px-5">
           <button type="button" className="icon-btn lg:hidden" onClick={() => setMobile(true)} aria-label="Open menu" aria-expanded={mobile}>
             <Menu className="h-4 w-4" />
           </button>
           <button
             type="button"
             onClick={() => setPalette(true)}
-            className="btn-bare flex min-h-9 w-full max-w-[300px] items-center gap-2 rounded-lg border border-line bg-deep/40 px-3 py-1.5 text-sm text-subtle hover:border-subtle/50"
+            className="btn-bare flex min-h-9 w-full min-w-0 max-w-[300px] shrink items-center gap-2 rounded-lg border border-line bg-deep/40 px-3 py-1.5 text-sm text-subtle hover:border-subtle/50"
           >
             <Search className="h-4 w-4" />
-            <span className="flex-1 text-left">Search here…</span>
+            <span className="flex-1 truncate text-left">Search here…</span>
             <span className="flex items-center gap-0.5 rounded border border-line bg-card2 px-1.5 py-0.5 text-micro text-muted">
               <Command className="h-3 w-3" />K
             </span>
