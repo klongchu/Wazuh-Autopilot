@@ -54,8 +54,8 @@ def _tool_access(name: str) -> str:
 def get_agent(agent_id: str, _: Principal = Depends(require("agents:read")), db: Session = Depends(get_db)):
     a = db.get(AgentDef, agent_id) or not_found("agent")
     health = agent_health(db, _running_agents(db))
-    runs = (db.query(Run).join(Span, Span.run_id == Run.id).filter(Span.agent_id == agent_id, Span.kind == "agent")
-            .order_by(Run.started_at.desc()).distinct().limit(15).all())
+    run_ids = db.query(Span.run_id).filter(Span.agent_id == agent_id, Span.kind == "agent").distinct()
+    runs = db.query(Run).filter(Run.id.in_(run_ids)).order_by(Run.started_at.desc()).limit(15).all()
     return {
         **agent_out(a, _skills_index(db), health.get(a.id, {}), get_section(db, "model")),
         "responsibilities": a.responsibilities or [],
@@ -117,7 +117,7 @@ def agent_prompt(agent_id: str, _: Principal = Depends(require("runs:debug")), d
         else:
             tools.append({"name": name, "description": "", "source": "platform" if name in PLATFORM_TOOL_NAMES else "mcp (unavailable)"})
     return {"system_prompt": system_prompt(a, org, a.handoffs or [], "swarm"),
-            "skills_injected": [{"id": s, "description": skills[s].description} for s in a.skills or [] if s in skills],
+            "skills_injected": [s for s in a.skills or [] if s in skills],
             "tools": tools}
 
 
