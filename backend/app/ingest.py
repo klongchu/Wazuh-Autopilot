@@ -123,8 +123,8 @@ def ingest(raws: list[dict], source: str = "webhook") -> dict:
                 continue
             number = (db.query(func.max(Case.number)).scalar() or 0) + 1
             host = alert.agent_name or f"agent {alert.agent_id}"
-            case = Case(number=number, title=f"{alert.rule_description.rstrip('.')[:180]} on {host}",
-                        summary="Opened automatically from Wazuh; awaiting triage.", severity=alert.severity,
+            case = Case(number=number, title=f"{alert.rule_description.rstrip('.')[:180]} บน {host}",
+                        summary="เปิดเคสอัตโนมัติจาก Wazuh กำลังรอการวิเคราะห์ (Awaiting triage)", severity=alert.severity,
                         status="open", confidence=0.5, group_key=group_key, mitre=alert.mitre,
                         entities=[e for e in [
                             {"type": "host", "value": alert.agent_name, "role": "victim", "enrichment": {"agent_id": alert.agent_id}} if alert.agent_name else None,

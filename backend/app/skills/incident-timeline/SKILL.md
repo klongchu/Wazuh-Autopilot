@@ -79,4 +79,4 @@ Cite the alert/rule id for every row. Keep to ≤ 40 rows; summarize the rest.
 
 - `add_finding` titled `Incident timeline` containing the table, milestones, derived
   metrics, pivots and telemetry gaps. standard_refs: `NIST-800-61r3`, `SANS-PICERL`.
-- `update_case(summary=...)` with a 2–3 sentence narrative if the summary is stale.
+- `update_case(summary=...)` with a 2–3 sentence narrative in Thai (สรุปภาพรวมเหตุการณ์และไทม์ไลน์เป็นภาษาไทย) if the summary is stale.

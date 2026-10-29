@@ -39,7 +39,7 @@ export const NAV: { section: string; items: NavItem[] }[] = [
     section: "Operations",
     items: [
       { to: "/alerts", label: "Alerts", icon: Radio, perm: "alerts:read" },
-      { to: "/cases", label: "Incidents", icon: Siren, perm: "cases:read" },
+      { to: "/cases", label: "เหตุการณ์ (Incidents)", icon: Siren, perm: "cases:read" },
       { to: "/approvals", label: "Approvals", icon: ClipboardCheck, perm: "actions:read", badgeKey: "approvals" },
     ],
   },

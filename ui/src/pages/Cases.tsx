@@ -30,7 +30,7 @@ export default function Cases() {
     { key: "num", header: "ID", cell: (c) => <span className="font-mono text-xs text-muted">{c.number}</span>, sort: (c) => c.number },
     {
       key: "title",
-      header: "Incident",
+      header: "เหตุการณ์ (Incident)",
       cell: (c) => (
         <div className="min-w-0">
           <div className="max-w-[440px] truncate">{c.title}</div>
@@ -45,26 +45,26 @@ export default function Cases() {
       ),
       sort: (c) => c.title,
     },
-    { key: "sev", header: "Severity", cell: (c) => <SeverityBadge value={c.severity} />, sort: (c) => ["informational", "low", "medium", "high", "critical"].indexOf(c.severity) },
-    { key: "status", header: "Status", cell: (c) => <StatusBadge value={c.status} />, sort: (c) => STATUSES.indexOf(c.status) },
-    { key: "conf", header: "Confidence", cell: (c) => fmtPct(c.confidence, 0, true), sort: (c) => c.confidence },
+    { key: "sev", header: "ระดับความรุนแรง", cell: (c) => <SeverityBadge value={c.severity} />, sort: (c) => ["informational", "low", "medium", "high", "critical"].indexOf(c.severity) },
+    { key: "status", header: "สถานะ", cell: (c) => <StatusBadge value={c.status} />, sort: (c) => STATUSES.indexOf(c.status) },
+    { key: "conf", header: "ความมั่นใจ", cell: (c) => fmtPct(c.confidence, 0, true), sort: (c) => c.confidence },
     { key: "alerts", header: "Alerts", cell: (c) => c.alert_count, sort: (c) => c.alert_count },
     {
       key: "pending",
-      header: "Actions",
+      header: "การดำเนินการ",
       cell: (c) =>
         c.pending_actions ? <span className="rounded-md border border-accent/30 bg-accent/10 px-1.5 text-xs text-accent-text">{c.pending_actions} pending</span> : <span className="text-subtle">—</span>,
       sort: (c) => c.pending_actions,
     },
-    { key: "assignee", header: "Assignee", cell: (c) => c.assignee?.name ?? <span className="text-subtle">Unassigned</span> },
-    { key: "updated", header: "Updated", cell: (c) => <span className="whitespace-nowrap text-muted">{relTime(c.updated_at)}</span>, sort: (c) => c.updated_at },
+    { key: "assignee", header: "ผู้รับผิดชอบ", cell: (c) => c.assignee?.name ?? <span className="text-subtle">Unassigned</span> },
+    { key: "updated", header: "อัปเดตล่าสุด", cell: (c) => <span className="whitespace-nowrap text-muted">{relTime(c.updated_at)}</span>, sort: (c) => c.updated_at },
   ];
 
   return (
     <div>
       <PageHeader
-        title="Incidents"
-        subtitle="Cases opened by the swarm from correlated Wazuh alerts"
+        title="เหตุการณ์ (Incidents)"
+        subtitle="เคสภัยคุกคามที่ถูกรวมกลุ่มและวิเคราะห์โดย Swarm จาก Wazuh Alerts"
         right={
           <Segmented
             aria-label="Case layout"

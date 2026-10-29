@@ -128,9 +128,9 @@ def build_platform_tools(ctx: RunContext) -> dict:
         the alerts are attached to it instead.
 
         Args:
-            title: Short incident title, e.g. "SSH brute force against web-prod-01 from 185.220.101.47".
+            title: Short incident title in Thai (ภาษาไทย), e.g. "การพยายาม Brute force รหัสผ่าน SSH ไปยัง web-prod-01 จาก 185.220.101.47".
             severity: informational | low | medium | high | critical
-            summary: Two to four sentences: what happened, affected assets, why it matters.
+            summary: Two to four sentences in Thai (ภาษาไทย): เกิดอะไรขึ้น, ทรัพย์สินที่ได้รับผลกระทบ, ผลกระทบและแนวทางรับมือ.
             alert_ids: Optional Wazuh alert ids to link.
             confidence: 0-1 confidence that this is a true positive.
         """
@@ -168,9 +168,9 @@ def build_platform_tools(ctx: RunContext) -> dict:
             case_id: Case number like INC-0042.
             status: open | triage | investigating | contained | resolved | closed | false_positive
             severity: informational | low | medium | high | critical
-            summary: Replacement summary (keep it current and concise).
+            summary: Replacement summary in Thai (สรุปสถานการณ์ล่าสุดเป็นภาษาไทย).
             confidence: 0-1 true-positive confidence.
-            title: Replacement title.
+            title: Replacement title in Thai (ชื่อเหตุการณ์เป็นภาษาไทย).
         """
         agent = _agent(tool_context)
         if ctx.dry_run:

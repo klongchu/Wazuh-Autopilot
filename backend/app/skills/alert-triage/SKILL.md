@@ -101,7 +101,8 @@ Never dismiss as noise:
 
 ## Output
 
-- `create_case(title, severity, summary, alert_ids, confidence)` or `update_case`.
+- `create_case(title, severity, summary, alert_ids, confidence)` or `update_case`:
+  - **Language**: Write `title` and `summary` in Thai (ภาษาไทย). The `summary` must be a clear 2–3 sentence narrative in Thai explaining: เกิดอะไรขึ้น, ทรัพย์สินที่ได้รับผลกระทบ, เหตุผลความรุนแรง, และแนวทางดำเนินการถัดไป (เช่น "ตรวจพบการพยายาม Brute Force รหัสผ่าน SSH บนโฮสต์ backup-01 อย่างต่อเนื่อง...")
 - `add_entities` with validated entities (see `entity-extraction`).
 - `link_mitre` with techniques from `rule.mitre.id` (verify with `mitre-attack-mapping`).
 - `add_finding` titled `Triage assessment`: severity rationale, FP reasoning, next step.
