@@ -334,7 +334,7 @@ export interface Standard {
 }
 
 export interface StandardDetail extends Standard {
-  controls: { id: string; title: string; covered_by: string[]; evidence_count: number }[];
+  controls: { id: string; title: string; covered_by: { type: "agent" | "skill"; id: string }[]; evidence_count: number }[];
 }
 
 // ---- Workflows ----

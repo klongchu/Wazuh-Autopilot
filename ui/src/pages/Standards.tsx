@@ -70,11 +70,14 @@ function StandardDrawer({ id, onClose }: { id: string | null; onClose: () => voi
                   cell: (c) =>
                     c.covered_by.length ? (
                       <div className="flex flex-wrap gap-1">
-                        {c.covered_by.map((x) => (
-                          <span key={x} className="chip">
-                            {x}
-                          </span>
-                        ))}
+                        {c.covered_by.map((x) => {
+                          const id = typeof x === "string" ? x : x.id;
+                          return (
+                            <span key={id} className="chip">
+                              {id}
+                            </span>
+                          );
+                        })}
                       </div>
                     ) : (
                       <span className="text-xs text-warn-text">gap</span>
