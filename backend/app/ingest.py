@@ -192,9 +192,13 @@ class Poller:
         with session_scope() as db:
             cfg = get_section(db, "ingestion")
             wazuh_settings = get_section(db, "wazuh")
+            if not self._cursor:
+                latest = db.query(Alert.ts).order_by(Alert.ts.desc()).first()
+                if latest and latest[0]:
+                    self._cursor = latest[0]
         if cfg.get("mode") not in {"poll", "both"} or not wazuh.configured(wazuh_settings):
             return 0
-        since = self._cursor or (utcnow() - timedelta(minutes=15))
+        since = self._cursor or (utcnow() - timedelta(hours=24))
         try:
             raw = wazuh.execute(wazuh_settings, "get_wazuh_alerts", {
                 "limit": 500, "compact": False, "timestamp_start": since.strftime("%Y-%m-%dT%H:%M:%SZ")})
@@ -202,7 +206,7 @@ class Poller:
             result = ingest(alerts, source="poll")
             if alerts:
                 newest = max(_parse_ts(a.get("timestamp")) for a in alerts)
-                self._cursor = max(since, newest - timedelta(seconds=1))
+                self._cursor = max(since, newest)
             self.last_error, self.last_count = None, result["accepted"]
             return result["accepted"]
         except Exception as e:
