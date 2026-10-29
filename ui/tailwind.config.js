@@ -5,7 +5,7 @@ export default {
   darkMode: ["class", '[data-theme="dark"]'],
   theme: {
     extend: {
-      fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"] },
+      fontFamily: { sans: ["'Noto Sans Thai'", "Inter", "ui-sans-serif", "system-ui", "sans-serif"] },
       // Semantic steps in rem so text tracks the browser/OS font size (WCAG 1.4.4).
       // Use these instead of arbitrary text-[Npx] values.
       fontSize: {
