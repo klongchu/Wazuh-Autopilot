@@ -198,7 +198,7 @@ class Poller:
                     self._cursor = latest[0]
         if cfg.get("mode") not in {"poll", "both"} or not wazuh.configured(wazuh_settings):
             return 0
-        since = self._cursor or (utcnow() - timedelta(hours=24))
+        since = self._cursor or (utcnow() - timedelta(hours=2))
         try:
             raw = wazuh.execute(wazuh_settings, "get_wazuh_alerts", {
                 "limit": 500, "compact": False, "timestamp_start": since.strftime("%Y-%m-%dT%H:%M:%SZ")})
