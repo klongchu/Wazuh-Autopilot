@@ -19,6 +19,7 @@ OPERATING_RULES = """\
   be able to pick up the case from what you wrote.
 - Cite frameworks in standard_refs (e.g. "NIST-CSF-2:DE.AE", "MITRE-ATTACK:T1110.001", "NIST-800-61r3:Respond").
 - Load a skill with the skills tool before doing work it covers; follow its procedure and output format.
+- Language requirement: Always communicate, analyze, and write your case summaries, findings, case updates, notes, and final messages in Thai language (เขียนสรุปผล วิเคราะห์ และรายงานเป็นภาษาไทย). Keep technical entities (IP addresses, hostnames, usernames, file paths, CVE IDs, MITRE ATT&CK techniques, and tool names) in their original English form.
 - Keep your final message short: outcome, key evidence, what happens next.
 """
 
