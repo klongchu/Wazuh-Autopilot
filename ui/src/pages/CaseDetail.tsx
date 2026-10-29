@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { useTabParam } from "@/lib/useTabParam";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { AlertTriangle, ArrowLeft, Bot, ChevronDown, ClipboardCheck, MessageSquare, Play, Radio, Send, UserRound } from "lucide-react";
 import { useAddComment, useCase, useRunCaseWorkflow, useUpdateCase, useUsers, useWorkflows } from "@/api/hooks";
 import type { CaseDetail as CaseT, CaseStatus, Severity } from "@/api/types";
 import { errorMessage } from "@/api/client";
-import { Card, CardHeader, EmptyState, ErrorState, Markdown, SeverityBadge, Select, SkeletonRows, Spinner, StatusBadge, Tabs, DataTable, type Column } from "@/components/ui";
+import { Card, CardHeader, EmptyState, ErrorState, Markdown, SeverityBadge, Select, SkeletonRows, Spinner, StatusBadge, Tabs, DataTable, useEsc, type Column } from "@/components/ui";
 import { ActionCard } from "@/components/ActionCard";
 import { RunsTable } from "@/components/RunsTable";
 import { fmtDateTime, fmtPct, relTime } from "@/lib/format";
@@ -20,7 +21,7 @@ const SEVERITIES: Severity[] = ["critical", "high", "medium", "low", "informatio
 export default function CaseDetail() {
   const { id = "" } = useParams();
   const q = useCase(id);
-  const [tab, setTab] = useState<Tab>("overview");
+  const [tab, setTab] = useTabParam<Tab>(["overview", "timeline", "findings", "actions", "runs", "alerts"], "overview");
 
   if (q.isLoading) return <SkeletonRows rows={10} />;
   if (q.error || !q.data) return <ErrorState error={q.error ?? "Not found"} onRetry={() => q.refetch()} />;
@@ -122,6 +123,7 @@ function RunWorkflowMenu({ caseId }: { caseId: string }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  useEsc(open, () => setOpen(false));
   useEffect(() => {
     if (!open) return;
     const h = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setOpen(false);
@@ -131,8 +133,8 @@ function RunWorkflowMenu({ caseId }: { caseId: string }) {
   if (!can("workflows:run")) return null;
   return (
     <div className="relative" ref={ref}>
-      <button className="btn-primary" onClick={() => setOpen(!open)} disabled={run.isPending}>
-        {run.isPending ? <Spinner className="text-black" /> : <Play className="h-4 w-4" />} Run workflow <ChevronDown className="h-4 w-4" />
+      <button type="button" aria-haspopup="true" aria-expanded={open} className="btn-primary" onClick={() => setOpen(!open)} disabled={run.isPending}>
+        {run.isPending ? <Spinner className="text-accent-fg" /> : <Play className="h-4 w-4" />} Run workflow <ChevronDown className="h-4 w-4" />
       </button>
       {open && (
         <div className="card absolute right-0 top-11 z-40 w-72 bg-card p-1.5 shadow-2xl">
@@ -141,7 +143,8 @@ function RunWorkflowMenu({ caseId }: { caseId: string }) {
             .map((w) => (
               <button
                 key={w.id}
-                className="w-full rounded-md px-3 py-2 text-left hover:bg-card2"
+                type="button"
+                className="btn-bare w-full rounded-md px-3 py-2 text-left hover:bg-card2"
                 onClick={() => {
                   setOpen(false);
                   run.mutate(w.id, {
@@ -154,7 +157,7 @@ function RunWorkflowMenu({ caseId }: { caseId: string }) {
                 }}
               >
                 <div className="text-sm">{w.name}</div>
-                <div className="text-[11px] text-muted">
+                <div className="text-micro text-muted">
                   {w.mode} · entry {w.entry_agent}
                 </div>
               </button>
@@ -195,7 +198,7 @@ function Overview({ c, onTab }: { c: CaseT; onTab: (t: Tab) => void }) {
               <div key={i} className="flex items-center justify-between gap-3 border-b border-line/60 py-2 text-sm last:border-0">
                 <span className="flex min-w-0 items-center gap-2">
                   <span className="chip w-16 justify-center">{e.type}</span>
-                  <span className="truncate font-mono text-[13px]">{e.value}</span>
+                  <span className="truncate font-mono text-caption">{e.value}</span>
                 </span>
                 <span className={cn("text-xs", roleTone[e.role])}>{e.role}</span>
               </div>
@@ -257,7 +260,7 @@ function Timeline({ c }: { c: CaseT }) {
               <div className="flex flex-wrap items-baseline gap-2">
                 <span className="text-sm">{t.text}</span>
               </div>
-              <div className="mt-0.5 text-[11px] text-subtle">
+              <div className="mt-0.5 text-micro text-subtle">
                 {t.actor} · {fmtDateTime(t.ts)}
               </div>
             </li>

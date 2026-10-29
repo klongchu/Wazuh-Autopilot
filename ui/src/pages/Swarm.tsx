@@ -34,7 +34,7 @@ export default function Swarm() {
                   }, {}),
                 ).map(([cat, list]) => (
                   <div key={cat} className="mb-3 last:mb-0">
-                    <div className="mb-1 text-[11px] text-subtle">{titleCase(cat)}</div>
+                    <div className="mb-1 text-micro text-subtle">{titleCase(cat)}</div>
                     {list?.map((a) => (
                       <Link
                         key={a.id}
@@ -58,7 +58,7 @@ export default function Swarm() {
                 {(running.data?.items ?? []).slice(0, 6).map((r) => (
                   <Link key={r.id} to={`/runs/${r.id}`} className="block rounded-lg px-2 py-1.5 hover:bg-card2">
                     <div className="text-sm">{r.workflow_name}</div>
-                    <div className="text-[11px] text-muted">
+                    <div className="text-micro text-muted">
                       {r.agents.join(" → ")} · {relTime(r.started_at)}
                     </div>
                   </Link>

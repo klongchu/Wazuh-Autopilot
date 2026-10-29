@@ -10,7 +10,16 @@ export default function Account() {
   const toast = useToast();
   const [f, setF] = useState({ current: "", next: "", confirm: "" });
   const [busy, setBusy] = useState(false);
-  const valid = f.current && f.next.length >= 10 && f.next === f.confirm;
+  const [showErrors, setShowErrors] = useState(false);
+  const errors = {
+    current: f.current ? "" : "Enter your current password.",
+    next: f.next.length >= 10 ? "" : "Use at least 10 characters.",
+    confirm: f.confirm === f.next ? "" : "Passwords don't match.",
+  };
+  const valid = !errors.current && !errors.next && !errors.confirm;
+  // Say what is wrong per field, and only once the field has been used or
+  // Update has been pressed.
+  const err = (k: keyof typeof errors, touched: boolean) => (showErrors || touched ? errors[k] || undefined : undefined);
   if (!user) return null;
   return (
     <div>
@@ -24,25 +33,31 @@ export default function Account() {
           <Kv k="Permissions" v={<span className="text-xs text-muted">{user.permissions.length} granted</span>} />
         </Card>
         <Card className="space-y-4 p-5">
-          <h3 className="text-[15px]">Change password</h3>
-          <Field label="Current password">
-            <input className="input" type="password" value={f.current} onChange={(e) => setF({ ...f, current: e.target.value })} />
+          <h3 className="text-title-sm">Change password</h3>
+          <Field label="Current password" error={err("current", !!f.current)}>
+            <input className="input" type="password" autoComplete="current-password" value={f.current} onChange={(e) => setF({ ...f, current: e.target.value })} />
           </Field>
-          <Field label="New password" hint="At least 10 characters.">
-            <input className="input" type="password" value={f.next} onChange={(e) => setF({ ...f, next: e.target.value })} />
+          <Field label="New password" hint="At least 10 characters." error={err("next", !!f.next)}>
+            <input className="input" type="password" autoComplete="new-password" value={f.next} onChange={(e) => setF({ ...f, next: e.target.value })} />
           </Field>
-          <Field label="Confirm new password">
-            <input className="input" type="password" value={f.confirm} onChange={(e) => setF({ ...f, confirm: e.target.value })} />
+          <Field label="Confirm new password" error={err("confirm", !!f.confirm)}>
+            <input className="input" type="password" autoComplete="new-password" value={f.confirm} onChange={(e) => setF({ ...f, confirm: e.target.value })} />
           </Field>
           <button
+            type="button"
             className="btn-primary"
-            disabled={!valid || busy}
+            disabled={busy}
             onClick={async () => {
+              if (!valid) {
+                setShowErrors(true);
+                return;
+              }
               setBusy(true);
               try {
                 await api.post("/auth/change-password", { current_password: f.current, new_password: f.next });
                 toast.success("Password changed");
                 setF({ current: "", next: "", confirm: "" });
+                setShowErrors(false);
               } catch (e) {
                 toast.error("Couldn't change password", errorMessage(e));
               } finally {
@@ -50,7 +65,7 @@ export default function Account() {
               }
             }}
           >
-            {busy && <Spinner className="text-black" />} Update password
+            {busy && <Spinner className="text-accent-fg" />} Update password
           </button>
         </Card>
       </PageBody>

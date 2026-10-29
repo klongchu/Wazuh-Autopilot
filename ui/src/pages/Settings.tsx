@@ -1,9 +1,10 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { useTabParam } from "@/lib/useTabParam";
 import { Cpu, Loader2, Plug, Save, Send, Server } from "lucide-react";
 import { useProviders, useSaveSettings, useSettings } from "@/api/hooks";
 import { api, errorMessage } from "@/api/client";
 import type { ModelTestResult, Settings as SettingsT, WazuhTestResult } from "@/api/types";
-import { Card, ErrorState, Field, PageHeader, Select, SkeletonRows, Spinner, Tabs, TagInput, Toggle } from "@/components/ui";
+import { Card, ErrorState, Field, NumberInput, PageHeader, Select, SkeletonRows, Spinner, Tabs, TagInput, Toggle } from "@/components/ui";
 import { ModelFields } from "./settings/ModelFields";
 import { ModelResult, WazuhResult } from "./Setup";
 import { FALLBACK_PROVIDERS } from "@/lib/providers";
@@ -20,7 +21,7 @@ export default function Settings() {
   const save = useSaveSettings();
   const { can } = useAuth();
   const toast = useToast();
-  const [tab, setTab] = useState<Tab>("general");
+  const [tab, setTab] = useTabParam<Tab>(["general", "wazuh", "models", "ingestion", "notifications", "observability", "swarm"], "general");
   const [s, setS] = useState<SettingsT | null>(null);
   useEffect(() => {
     if (q.data) setS(structuredClone(q.data));
@@ -50,7 +51,7 @@ export default function Settings() {
         right={
           editable && (
             <button className="btn-primary" disabled={!dirty || save.isPending} onClick={onSave}>
-              {save.isPending ? <Spinner className="text-black" /> : <Save className="h-4 w-4" />} Save changes
+              {save.isPending ? <Spinner className="text-accent-fg" /> : <Save className="h-4 w-4" />} Save changes
             </button>
           )
         }
@@ -102,16 +103,16 @@ export default function Settings() {
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Poll interval (seconds)">
-                <input className="input" type="number" min={15} disabled={!editable} value={s.ingestion.poll_interval_s} onChange={(e) => set("ingestion", { poll_interval_s: Number(e.target.value) })} />
+                <NumberInput min={15} max={3600} disabled={!editable} value={s.ingestion.poll_interval_s} onChange={(v) => set("ingestion", { poll_interval_s: v })} />
               </Field>
               <Field label="Minimum Wazuh rule level" hint="Alerts below this level are ignored.">
-                <input className="input" type="number" min={0} max={15} disabled={!editable} value={s.ingestion.min_level} onChange={(e) => set("ingestion", { min_level: Number(e.target.value) })} />
+                <NumberInput min={0} max={15} disabled={!editable} value={s.ingestion.min_level} onChange={(v) => set("ingestion", { min_level: v })} />
               </Field>
               <Field label="Dedup window (minutes)">
-                <input className="input" type="number" min={0} disabled={!editable} value={s.ingestion.dedup_window_min} onChange={(e) => set("ingestion", { dedup_window_min: Number(e.target.value) })} />
+                <NumberInput min={0} max={1440} disabled={!editable} value={s.ingestion.dedup_window_min} onChange={(v) => set("ingestion", { dedup_window_min: v })} />
               </Field>
               <Field label="Case grouping window (minutes)" hint="Related alerts within this window join the same incident.">
-                <input className="input" type="number" min={0} disabled={!editable} value={s.ingestion.group_window_min} onChange={(e) => set("ingestion", { group_window_min: Number(e.target.value) })} />
+                <NumberInput min={0} max={1440} disabled={!editable} value={s.ingestion.group_window_min} onChange={(v) => set("ingestion", { group_window_min: v })} />
               </Field>
             </div>
             <Field label="Webhook ingest key" hint="Send as the X-Autopilot-Ingest-Key header from your Wazuh integration script.">
@@ -130,7 +131,7 @@ export default function Settings() {
             </Field>
             <Toggle checked={s.observability.prometheus_enabled} disabled={!editable} onChange={(v) => set("observability", { prometheus_enabled: v })} label="Expose Prometheus metrics at /metrics" />
             <Field label="Trace retention (days)">
-              <input className="input w-32" type="number" min={1} disabled={!editable} value={s.observability.trace_retention_days} onChange={(e) => set("observability", { trace_retention_days: Number(e.target.value) })} />
+              <NumberInput className="w-32" min={1} max={3650} disabled={!editable} value={s.observability.trace_retention_days} onChange={(v) => set("observability", { trace_retention_days: v })} />
             </Field>
           </Section>
         )}
@@ -138,19 +139,19 @@ export default function Settings() {
           <Section title="Swarm limits" desc="Guardrails on multi-agent execution (Strands Swarm / Graph settings).">
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Max handoffs per run">
-                <input className="input" type="number" min={1} disabled={!editable} value={s.swarm.max_handoffs} onChange={(e) => set("swarm", { max_handoffs: Number(e.target.value) })} />
+                <NumberInput min={1} max={100} disabled={!editable} value={s.swarm.max_handoffs} onChange={(v) => set("swarm", { max_handoffs: v })} />
               </Field>
               <Field label="Max iterations per run">
-                <input className="input" type="number" min={1} disabled={!editable} value={s.swarm.max_iterations} onChange={(e) => set("swarm", { max_iterations: Number(e.target.value) })} />
+                <NumberInput min={1} max={200} disabled={!editable} value={s.swarm.max_iterations} onChange={(v) => set("swarm", { max_iterations: v })} />
               </Field>
               <Field label="Run timeout (seconds)">
-                <input className="input" type="number" min={30} disabled={!editable} value={s.swarm.execution_timeout_s} onChange={(e) => set("swarm", { execution_timeout_s: Number(e.target.value) })} />
+                <NumberInput min={30} max={86400} disabled={!editable} value={s.swarm.execution_timeout_s} onChange={(v) => set("swarm", { execution_timeout_s: v })} />
               </Field>
               <Field label="Per-agent timeout (seconds)">
-                <input className="input" type="number" min={10} disabled={!editable} value={s.swarm.node_timeout_s} onChange={(e) => set("swarm", { node_timeout_s: Number(e.target.value) })} />
+                <NumberInput min={10} max={7200} disabled={!editable} value={s.swarm.node_timeout_s} onChange={(v) => set("swarm", { node_timeout_s: v })} />
               </Field>
               <Field label="Max concurrent runs">
-                <input className="input" type="number" min={1} disabled={!editable} value={s.swarm.max_concurrent_runs} onChange={(e) => set("swarm", { max_concurrent_runs: Number(e.target.value) })} />
+                <NumberInput min={1} max={64} disabled={!editable} value={s.swarm.max_concurrent_runs} onChange={(v) => set("swarm", { max_concurrent_runs: v })} />
               </Field>
             </div>
           </Section>
@@ -164,7 +165,7 @@ function Section({ title, desc, children }: { title: string; desc?: string; chil
   return (
     <Card className="space-y-4 p-5">
       <div>
-        <h3 className="text-[15px]">{title}</h3>
+        <h3 className="text-title-sm">{title}</h3>
         {desc && <p className="mt-0.5 text-sm text-muted">{desc}</p>}
       </div>
       {children}
@@ -198,7 +199,7 @@ function WazuhTab({ s, set, editable }: { s: SettingsT; set: SetFn; editable: bo
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Request timeout (seconds)">
-          <input className="input" type="number" min={5} disabled={!editable} value={s.wazuh.request_timeout_s} onChange={(e) => set("wazuh", { request_timeout_s: Number(e.target.value) })} />
+          <NumberInput min={5} max={600} disabled={!editable} value={s.wazuh.request_timeout_s} onChange={(v) => set("wazuh", { request_timeout_s: v })} />
         </Field>
         <div className="flex items-end pb-2">
           <Toggle checked={s.wazuh.verify_tls} disabled={!editable} onChange={(v) => set("wazuh", { verify_tls: v })} label="Verify TLS certificate" />

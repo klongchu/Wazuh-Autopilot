@@ -23,7 +23,7 @@ export default function Health() {
           <AgentAvatar icon={a.icon} color={a.avatar_color} size="sm" running={a.status === "running"} />
           <div>
             <div className="whitespace-nowrap">{a.codename}</div>
-            <div className="text-[11px] text-subtle">{a.name}</div>
+            <div className="text-micro text-subtle">{a.name}</div>
           </div>
         </div>
       ),
@@ -66,7 +66,7 @@ export default function Health() {
                         <span className={cn(c.status === "healthy" ? "text-success" : c.status === "degraded" ? "text-warn" : c.status === "down" ? "text-danger" : "text-muted")}>{c.status}</span>
                         {c.latency_ms !== null && <span className="text-subtle">{fmtMs(c.latency_ms)}</span>}
                       </div>
-                      <div className="mt-2 line-clamp-2 text-[11px] text-subtle" title={c.detail}>
+                      <div className="mt-2 line-clamp-2 text-micro text-subtle" title={c.detail}>
                         {c.detail}
                       </div>
                     </Card>

@@ -42,7 +42,7 @@ export default function Workflows() {
                       {!w.enabled && <Badge>off</Badge>}
                     </div>
                     <p className="mt-1.5 line-clamp-2 text-xs text-muted">{w.description}</p>
-                    <div className="mt-2 flex gap-3 text-[11px] text-subtle">
+                    <div className="mt-2 flex gap-3 text-micro text-subtle">
                       <span>{w.trigger.type}</span>
                       <span>{w.runs_7d} runs/7d</span>
                       <span>{fmtPct(w.success_rate, 0, true)} success</span>
@@ -93,7 +93,7 @@ function WorkflowDetail({ wf }: { wf: Workflow }) {
       </Card>
       <Card className="p-5">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-[15px]">Trigger</h3>
+          <h3 className="text-title-sm">Trigger</h3>
           <Toggle checked={enabled} onChange={setEnabled} disabled={!editable} label={enabled ? "Enabled" : "Disabled"} />
         </div>
         <div className="grid gap-4 md:grid-cols-3">
@@ -139,7 +139,7 @@ function WorkflowDetail({ wf }: { wf: Workflow }) {
                 save.mutate({ id: wf.id, body: { enabled, trigger } }, { onSuccess: () => toast.success("Workflow saved"), onError: (e) => toast.error("Save failed", errorMessage(e)) })
               }
             >
-              {save.isPending ? <Spinner className="text-black" /> : <Save className="h-4 w-4" />} Save
+              {save.isPending ? <Spinner className="text-accent-fg" /> : <Save className="h-4 w-4" />} Save
             </button>
           </div>
         )}
@@ -201,13 +201,13 @@ function RunModal({ wf, open, onClose }: { wf: Workflow; open: boolean; onClose:
               )
             }
           >
-            {run.isPending ? <Spinner className="text-black" /> : <Play className="h-4 w-4" />} Start run
+            {run.isPending ? <Spinner className="text-accent-fg" /> : <Play className="h-4 w-4" />} Start run
           </button>
         </>
       }
     >
       <Field label="Input (JSON)" hint={parsed ? "Passed to the entry agent." : "Invalid JSON object."}>
-        <textarea className={cn("textarea min-h-[180px] font-mono text-[12.5px]", !parsed && "border-danger/50")} value={text} onChange={(e) => setText(e.target.value)} />
+        <textarea className={cn("textarea min-h-[180px] font-mono text-meta", !parsed && "border-danger/50")} value={text} onChange={(e) => setText(e.target.value)} />
       </Field>
     </Modal>
   );

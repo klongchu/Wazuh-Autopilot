@@ -36,7 +36,7 @@ export default function Cases() {
           <div className="max-w-[440px] truncate">{c.title}</div>
           <div className="mt-0.5 flex flex-wrap gap-1">
             {c.mitre.slice(0, 3).map((m) => (
-              <span key={m.technique_id} className="font-mono text-[10.5px] text-subtle">
+              <span key={m.technique_id} className="font-mono text-micro text-subtle">
                 {m.technique_id}
               </span>
             ))}
@@ -124,15 +124,15 @@ function Board({ cases }: { cases: Case[] }) {
               {items.map((c) => (
                 <Link key={c.id} to={`/cases/${c.id}`} className={cn("block rounded-lg border border-line bg-card p-3 transition hover:border-subtle/60")}>
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-[11px] text-muted">{c.number}</span>
+                    <span className="font-mono text-micro text-muted">{c.number}</span>
                     <SeverityBadge value={c.severity} />
                   </div>
                   <div className="mt-1.5 line-clamp-2 text-sm">{c.title}</div>
-                  <div className="mt-2 flex items-center justify-between text-[11px] text-subtle">
+                  <div className="mt-2 flex items-center justify-between text-micro text-subtle">
                     <span>{c.alert_count} alerts</span>
                     <span>{relTime(c.updated_at)}</span>
                   </div>
-                  {c.pending_actions > 0 && <div className="mt-2 text-[11px] text-accent">{c.pending_actions} action(s) awaiting approval</div>}
+                  {c.pending_actions > 0 && <div className="mt-2 text-micro text-accent">{c.pending_actions} action(s) awaiting approval</div>}
                 </Link>
               ))}
               {!items.length && <div className="py-6 text-center text-xs text-subtle">Empty</div>}

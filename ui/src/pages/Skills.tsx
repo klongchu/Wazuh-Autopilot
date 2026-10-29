@@ -59,19 +59,19 @@ export default function Skills() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <Sparkles className="h-4 w-4 text-accent" />
-                      <span className="text-[15px]">{s.name}</span>
+                      <span className="text-title-sm">{s.name}</span>
                     </div>
                     <Badge>{s.category}</Badge>
                   </div>
                   <p className="mt-2 line-clamp-2 text-sm text-muted">{s.description}</p>
                   <div className="mt-3 flex flex-wrap gap-1">
                     {s.standards.slice(0, 3).map((st) => (
-                      <span key={st.id} className="rounded-md border border-info/25 bg-info/5 px-1.5 py-0.5 text-[10.5px] text-info">
+                      <span key={st.id} className="rounded-md border border-info/25 bg-info/5 px-1.5 py-0.5 text-micro text-info">
                         {st.name}
                       </span>
                     ))}
                   </div>
-                  <div className="mt-3 flex items-center justify-between border-t border-line/70 pt-2.5 text-[11px] text-subtle">
+                  <div className="mt-3 flex items-center justify-between border-t border-line/70 pt-2.5 text-micro text-subtle">
                     <span>used by {s.used_by.length} agent{s.used_by.length === 1 ? "" : "s"}</span>
                     <span>{s.builtin ? "built-in" : "custom"} · {relTime(s.updated_at)}</span>
                   </div>
@@ -127,7 +127,7 @@ function SkillDrawer({ id, onClose }: { id: string | null; onClose: () => void }
                   )
                 }
               >
-                {save.isPending ? <Spinner className="text-black" /> : <Save className="h-4 w-4" />} Save
+                {save.isPending ? <Spinner className="text-accent-fg" /> : <Save className="h-4 w-4" />} Save
               </button>
             </>
           ) : (
@@ -147,7 +147,7 @@ function SkillDrawer({ id, onClose }: { id: string | null; onClose: () => void }
                 <textarea className="textarea" rows={2} value={desc} onChange={(e) => setDesc(e.target.value)} />
               </Field>
               <Field label="SKILL.md instructions (markdown)">
-                <textarea className="textarea min-h-[50vh] font-mono text-[12.5px]" value={body} onChange={(e) => setBody(e.target.value)} />
+                <textarea className="textarea min-h-[50vh] font-mono text-meta" value={body} onChange={(e) => setBody(e.target.value)} />
               </Field>
             </>
           ) : (
@@ -239,7 +239,7 @@ function CreateSkill({ open, onClose }: { open: boolean; onClose: () => void }) 
           <input className="input" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
         </Field>
         <Field label="Instructions (markdown)" className="sm:col-span-2">
-          <textarea className="textarea min-h-[220px] font-mono text-[12.5px]" value={f.body_md} onChange={(e) => setF({ ...f, body_md: e.target.value })} />
+          <textarea className="textarea min-h-[220px] font-mono text-meta" value={f.body_md} onChange={(e) => setF({ ...f, body_md: e.target.value })} />
         </Field>
       </div>
     </Modal>

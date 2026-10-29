@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTabParam } from "@/lib/useTabParam";
 import { ClipboardCheck, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useActions, usePolicy } from "@/api/hooks";
@@ -10,7 +11,7 @@ type Tab = "queue" | "approved" | "history";
 const HISTORY = ["", "executed", "verified", "failed", "rejected", "rolled_back", "expired"];
 
 export default function Approvals() {
-  const [tab, setTab] = useState<Tab>("queue");
+  const [tab, setTab] = useTabParam<Tab>(["queue", "approved", "history"], "queue");
   const [hist, setHist] = useState("");
   const proposed = useActions({ status: "proposed" });
   const approved = useActions({ status: "approved" });

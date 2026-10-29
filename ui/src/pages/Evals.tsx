@@ -39,7 +39,7 @@ export default function Evals() {
                       {a && <AgentAvatar icon={a.icon} color={a.avatar_color} size="sm" />}
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm">{s.name}</div>
-                        <div className="text-[11px] text-muted">
+                        <div className="text-micro text-muted">
                           {s.cases} cases · {relTime(s.last_run_at)}
                         </div>
                       </div>
@@ -90,7 +90,7 @@ function SuiteDetail({ id }: { id: string }) {
                 disabled={run.isPending || latest?.status === "running"}
                 onClick={() => run.mutate(id, { onSuccess: () => toast.success("Eval started"), onError: (e) => toast.error("Couldn't start eval", errorMessage(e)) })}
               >
-                {run.isPending || latest?.status === "running" ? <Spinner className="text-black" /> : <Play className="h-4 w-4" />} Run suite
+                {run.isPending || latest?.status === "running" ? <Spinner className="text-accent-fg" /> : <Play className="h-4 w-4" />} Run suite
               </button>
             )
           }

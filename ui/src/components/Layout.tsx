@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Bell, ChevronDown, Command, LogOut, Menu, Moon, Search, Settings, Sun, User as UserIcon, X } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -8,7 +8,7 @@ import { NAV } from "@/lib/nav";
 import { cn } from "@/lib/cn";
 import { useActions, useSetupStatus } from "@/api/hooks";
 import { relTime } from "@/lib/format";
-import { Spinner } from "./ui";
+import { Spinner, useDialog, useEsc } from "./ui";
 
 export function Logo({ compact }: { compact?: boolean }) {
   return (
@@ -22,8 +22,8 @@ export function Logo({ compact }: { compact?: boolean }) {
       </svg>
       {!compact && (
         <div className="leading-tight">
-          <div className="text-[16px] font-medium tracking-tight">Autopilot</div>
-          <div className="text-[10.5px] text-subtle">Agentic SOC · Strands</div>
+          <div className="text-base font-medium tracking-tight">Autopilot</div>
+          <div className="text-micro text-subtle">Agentic SOC · Strands</div>
         </div>
       )}
     </div>
@@ -57,7 +57,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                     onClick={onNavigate}
                     className={({ isActive }) =>
                       cn(
-                        "group flex items-center gap-2.5 rounded-lg border px-2.5 py-[7px] text-[13.5px] transition",
+                        "group flex items-center gap-2.5 rounded-lg border px-2.5 py-[7px] text-caption transition",
                         isActive
                           ? "border-line bg-card2 text-fg shadow-[inset_0_1px_0_rgb(255_255_255/0.03)]"
                           : "border-transparent text-muted hover:bg-card2/50 hover:text-fg",
@@ -69,7 +69,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                         <item.icon className={cn("h-[16px] w-[16px] shrink-0", isActive ? "text-accent" : "text-subtle group-hover:text-muted")} />
                         <span className="flex-1 truncate">{item.label}</span>
                         {item.badgeKey === "approvals" && pendingCount > 0 && (
-                          <span className="rounded-md border border-accent/30 bg-accent/15 px-1.5 text-[10.5px] font-medium text-accent">
+                          <span className="rounded-md border border-accent/30 bg-accent/15 px-1.5 text-micro font-medium text-accent-text">
                             {pendingCount}
                           </span>
                         )}
@@ -85,14 +85,18 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       <div className="p-3">
         <div className="grid grid-cols-2 gap-1 rounded-xl border border-line bg-deep/60 p-1">
           <button
+            type="button"
+            aria-pressed={theme === "light"}
             onClick={() => setTheme("light")}
-            className={cn("flex items-center justify-center gap-2 rounded-lg py-2 text-sm transition", theme === "light" ? "bg-card2 text-fg ring-1 ring-line" : "text-muted hover:text-fg")}
+            className={cn("btn-bare flex items-center justify-center gap-2 rounded-lg py-2 text-sm", theme === "light" ? "bg-card2 text-fg ring-1 ring-line" : "text-muted hover:text-fg")}
           >
             <Sun className="h-4 w-4" /> Light
           </button>
           <button
+            type="button"
+            aria-pressed={theme === "dark"}
             onClick={() => setTheme("dark")}
-            className={cn("flex items-center justify-center gap-2 rounded-lg py-2 text-sm transition", theme === "dark" ? "bg-card2 text-fg ring-1 ring-line" : "text-muted hover:text-fg")}
+            className={cn("btn-bare flex items-center justify-center gap-2 rounded-lg py-2 text-sm", theme === "dark" ? "bg-card2 text-fg ring-1 ring-line" : "text-muted hover:text-fg")}
           >
             <Moon className="h-4 w-4" /> Dark
           </button>
@@ -108,6 +112,8 @@ function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void 
   const [q, setQ] = useState("");
   const [idx, setIdx] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useDialog<HTMLDivElement>(open, onClose);
+  const listId = useId();
   const items = useMemo(() => {
     const all = NAV.flatMap((s) => s.items.filter((i) => can(i.perm)).map((i) => ({ ...i, section: s.section })));
     const needle = q.trim().toLowerCase();
@@ -125,7 +131,6 @@ function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void 
     if (open) {
       setQ("");
       setIdx(0);
-      setTimeout(() => inputRef.current?.focus(), 10);
     }
   }, [open]);
   useEffect(() => setIdx(0), [q]);
@@ -138,7 +143,14 @@ function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void 
   return (
     <div className="fixed inset-0 z-[90] flex items-start justify-center p-4 pt-[12vh]">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="card relative w-full max-w-xl overflow-hidden bg-card shadow-2xl">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Command palette"
+        tabIndex={-1}
+        className="card relative w-full max-w-xl overflow-hidden bg-card shadow-2xl focus:outline-none"
+      >
         <div className="flex items-center gap-2 border-b border-line px-4">
           <Search className="h-4 w-4 text-muted" />
           <input
@@ -156,22 +168,35 @@ function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void 
               else if (e.key === "Escape") onClose();
             }}
             placeholder="Jump to a page, search alerts or incidents…"
+            aria-label="Jump to a page, search alerts or incidents"
+            role="combobox"
+            aria-expanded
+            aria-controls={listId}
+            aria-activedescendant={items[idx] ? `${listId}-${idx}` : undefined}
+            data-autofocus
             className="h-12 flex-1 bg-transparent text-sm outline-none placeholder:text-subtle"
           />
           <span className="kbd">ESC</span>
         </div>
-        <div className="scrollbar-thin max-h-[50vh] overflow-y-auto p-1.5">
-          {items.length === 0 && <div className="px-3 py-6 text-center text-sm text-muted">No matches</div>}
+        <div id={listId} role="listbox" className="scrollbar-thin max-h-[50vh] overflow-y-auto p-1.5">
+          {items.length === 0 && (
+            <div className="px-3 py-6 text-center text-sm text-muted">No matches for “{q}”. Try a page name, an alert ID or a host.</div>
+          )}
           {items.map((it, i) => (
             <button
+              type="button"
               key={`${it.to}-${i}`}
+              id={`${listId}-${i}`}
+              role="option"
+              aria-selected={i === idx}
+              tabIndex={-1}
               onMouseEnter={() => setIdx(i)}
               onClick={() => go(it.to)}
               className={cn("flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm", i === idx ? "bg-card2 text-fg" : "text-muted")}
             >
               <it.icon className={cn("h-4 w-4", i === idx ? "text-accent" : "text-subtle")} />
               <span className="flex-1">{it.label}</span>
-              <span className="text-[11px] text-subtle">{it.section}</span>
+              <span className="text-micro text-subtle">{it.section}</span>
             </button>
           ))}
         </div>
@@ -184,6 +209,7 @@ function Notifications() {
   const { events } = useEvents();
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(0);
+  useEsc(open, () => setOpen(false));
   const important = events.filter((e) => ["case.created", "action.created", "action.updated", "run.finished"].includes(e.type)).slice(0, 25);
   const unread = important.filter((e) => e.at > seen).length;
   const ref = useRef<HTMLDivElement>(null);
@@ -196,8 +222,11 @@ function Notifications() {
   return (
     <div className="relative" ref={ref}>
       <button
+        type="button"
         className="icon-btn relative"
         aria-label="Notifications"
+        aria-haspopup="true"
+        aria-expanded={open}
         onClick={() => {
           setOpen(!open);
           setSeen(Date.now());
@@ -214,7 +243,7 @@ function Notifications() {
             {important.map((e, i) => (
               <div key={i} className="border-b border-line/60 px-4 py-2.5 last:border-0">
                 <div className="text-sm">{describeEvent(e.type, e.data)}</div>
-                <div className="mt-0.5 text-[11px] text-subtle">{relTime(new Date(e.at).toISOString())}</div>
+                <div className="mt-0.5 text-micro text-subtle">{relTime(new Date(e.at).toISOString())}</div>
               </div>
             ))}
           </div>
@@ -255,6 +284,7 @@ function UserMenu() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  useEsc(open, () => setOpen(false));
   useEffect(() => {
     if (!open) return;
     const h = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setOpen(false);
@@ -264,13 +294,19 @@ function UserMenu() {
   if (!user) return null;
   return (
     <div className="relative" ref={ref}>
-      <button onClick={() => setOpen(!open)} className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 hover:bg-card2/60">
+      <button
+        type="button"
+        aria-haspopup="true"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+        className="btn-bare flex min-h-9 items-center gap-2.5 rounded-lg px-1.5 py-1 hover:bg-card2/60"
+      >
         <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-card2 text-muted">
           <UserIcon className="h-4 w-4" />
         </span>
         <span className="hidden text-left leading-tight sm:block">
-          <span className="block text-[13px]">{user.name}</span>
-          <span className="block text-[11px] text-muted">{user.email}</span>
+          <span className="block text-caption">{user.name}</span>
+          <span className="block text-micro text-muted">{user.email}</span>
         </span>
         <ChevronDown className="h-4 w-4 text-muted" />
       </button>
@@ -279,14 +315,22 @@ function UserMenu() {
           <div className="px-2.5 py-2">
             <div className="text-sm">{user.name}</div>
             <div className="text-xs text-muted">{user.email}</div>
-            <div className="mt-1.5 inline-flex rounded-md border border-accent/30 bg-accent/10 px-1.5 py-0.5 text-[11px] text-accent">{user.role_label}</div>
+            <div className="mt-1.5 inline-flex rounded-md border border-accent/30 bg-accent/10 px-1.5 py-0.5 text-micro text-accent-text">{user.role_label}</div>
           </div>
           <div className="my-1 border-t border-line" />
-          <button className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm text-muted hover:bg-card2 hover:text-fg" onClick={() => { setOpen(false); navigate("/account"); }}>
+          <button
+            type="button"
+            className="btn-bare flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm text-muted hover:bg-card2 hover:text-fg"
+            onClick={() => {
+              setOpen(false);
+              navigate("/account");
+            }}
+          >
             <UserIcon className="h-4 w-4" /> Account & password
           </button>
           <button
-            className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm text-muted hover:bg-card2 hover:text-danger"
+            type="button"
+            className="btn-bare flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm text-muted hover:bg-card2 hover:text-danger-text"
             onClick={() => {
               logout();
               navigate("/login");
@@ -302,6 +346,8 @@ function UserMenu() {
 
 export function Layout() {
   const [mobile, setMobile] = useState(false);
+  const closeMobile = useCallback(() => setMobile(false), []);
+  const mobileRef = useDialog<HTMLElement>(mobile, closeMobile);
   const [palette, setPalette] = useState(false);
   const { can } = useAuth();
   const { connected } = useEvents();
@@ -323,6 +369,10 @@ export function Layout() {
 
   return (
     <div className="flex h-full bg-deep">
+      {/* First stop for keyboard users: jump past the nav to the page content. */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
       {/* Desktop sidebar */}
       <aside className="hidden w-[236px] shrink-0 border-r border-line bg-bg lg:block">
         <Sidebar />
@@ -330,9 +380,21 @@ export function Layout() {
       {/* Mobile drawer */}
       {mobile && (
         <div className="fixed inset-0 z-[60] lg:hidden">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setMobile(false)} />
-          <aside className="absolute left-0 top-0 h-full w-[260px] border-r border-line bg-bg shadow-2xl">
-            <button className="absolute right-3 top-5 text-muted" onClick={() => setMobile(false)} aria-label="Close menu">
+          <div className="absolute inset-0 animate-fadeIn bg-black/60 motion-reduce:animate-none" onClick={() => setMobile(false)} />
+          <aside
+            ref={mobileRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigation"
+            tabIndex={-1}
+            className="absolute left-0 top-0 h-full w-[260px] border-r border-line bg-bg shadow-2xl focus:outline-none"
+          >
+            <button
+              type="button"
+              className="icon-btn absolute right-2 top-3 border-transparent bg-transparent"
+              onClick={() => setMobile(false)}
+              aria-label="Close menu"
+            >
               <X className="h-5 w-5" />
             </button>
             <Sidebar onNavigate={() => setMobile(false)} />
@@ -341,38 +403,39 @@ export function Layout() {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col bg-bg">
-        <header className="flex h-[60px] shrink-0 items-center gap-3 border-b border-line px-3 md:px-5">
-          <button className="icon-btn lg:hidden" onClick={() => setMobile(true)} aria-label="Open menu">
+        <header className="flex min-h-[60px] shrink-0 items-center gap-3 border-b border-line px-3 md:px-5">
+          <button type="button" className="icon-btn lg:hidden" onClick={() => setMobile(true)} aria-label="Open menu" aria-expanded={mobile}>
             <Menu className="h-4 w-4" />
           </button>
           <button
+            type="button"
             onClick={() => setPalette(true)}
-            className="flex h-9 w-full max-w-[300px] items-center gap-2 rounded-lg border border-line bg-deep/40 px-3 text-sm text-subtle hover:border-subtle/50"
+            className="btn-bare flex min-h-9 w-full max-w-[300px] items-center gap-2 rounded-lg border border-line bg-deep/40 px-3 py-1.5 text-sm text-subtle hover:border-subtle/50"
           >
             <Search className="h-4 w-4" />
             <span className="flex-1 text-left">Search here…</span>
-            <span className="flex items-center gap-0.5 rounded border border-line bg-card2 px-1.5 py-0.5 text-[10px] text-muted">
+            <span className="flex items-center gap-0.5 rounded border border-line bg-card2 px-1.5 py-0.5 text-micro text-muted">
               <Command className="h-3 w-3" />K
             </span>
           </button>
           <div className="flex-1" />
           {setup.data?.demo_mode && (
-            <span className="hidden rounded-md border border-info/30 bg-info/10 px-2 py-1 text-[11px] text-info md:inline">Demo mode</span>
+            <span className="hidden rounded-md border border-info/30 bg-info/10 px-2 py-1 text-micro text-info-text md:inline">Demo mode</span>
           )}
-          <span className="hidden items-center gap-1.5 text-[11px] text-muted md:flex" title={connected ? "Live updates connected" : "Live updates disconnected"}>
+          <span className="hidden items-center gap-1.5 text-micro text-muted md:flex" title={connected ? "Live updates connected" : "Live updates disconnected"}>
             <span className={cn("h-1.5 w-1.5 rounded-full", connected ? "bg-success" : "bg-subtle")} />
             {connected ? "Live" : "Offline"}
           </span>
           <UserMenu />
           <div className="mx-1 hidden h-6 w-px bg-line sm:block" />
           {can("settings:read") && (
-            <button className="icon-btn" onClick={() => navigate("/settings")} aria-label="Settings">
+            <button type="button" className="icon-btn" onClick={() => navigate("/settings")} aria-label="Settings">
               <Settings className="h-4 w-4" />
             </button>
           )}
           <Notifications />
         </header>
-        <main className="min-h-0 flex-1 overflow-y-auto">
+        <main id="main-content" tabIndex={-1} className="min-h-0 flex-1 overflow-y-auto focus:outline-none">
           <Suspense
             fallback={
               <div className="flex h-64 items-center justify-center">

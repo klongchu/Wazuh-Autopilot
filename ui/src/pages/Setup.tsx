@@ -53,14 +53,29 @@ export default function Setup() {
       .catch(() => {});
   }, []);
 
-  const valid = [
-    org.trim().length > 1,
-    admin.name.trim() && /\S+@\S+\.\S+/.test(admin.email) && admin.password.length >= 10 && admin.password === admin.confirm,
-    wazuh.mcp_url.trim().length > 0,
-    !!model.provider,
-    true,
-    true,
-  ];
+  const emailValid = /\S+@\S+\.\S+/.test(admin.email);
+  const errors = {
+    org: org.trim().length > 1 ? "" : "Enter your organization name.",
+    name: admin.name.trim() ? "" : "Enter the administrator's full name.",
+    email: emailValid ? "" : "Enter a valid email address.",
+    password: admin.password.length >= 10 ? "" : "Use at least 10 characters.",
+    confirm: admin.confirm === admin.password ? "" : "Passwords don't match.",
+    mcp_url: wazuh.mcp_url.trim() ? "" : "Enter the MCP server base URL.",
+    provider: model.provider ? "" : "Pick a model provider.",
+  };
+  // What each step still needs, so a disabled Continue can explain itself.
+  const blockers: string[][] = [
+    [errors.org],
+    [errors.name, errors.email, errors.password, errors.confirm],
+    [errors.mcp_url],
+    [errors.provider],
+    [],
+    [],
+  ].map((xs) => xs.filter(Boolean));
+  const valid = blockers.map((b) => b.length === 0);
+  // Only nag about a field once it has been touched or Continue has been tried.
+  const [showErrors, setShowErrors] = useState(false);
+  const err = (key: keyof typeof errors, touched: boolean) => (showErrors || touched ? errors[key] || undefined : undefined);
 
   const testWazuh = async () => {
     setTesting("w");
@@ -126,7 +141,7 @@ export default function Setup() {
                   i === step ? "border-accent/50 bg-accent/10 text-accent" : i < step ? "border-line bg-card2 text-fg" : "border-line text-subtle",
                 )}
               >
-                <span className={cn("flex h-4 w-4 items-center justify-center rounded-full text-[10px]", i < step ? "bg-success text-black" : "bg-line")}>
+                <span className={cn("flex h-4 w-4 items-center justify-center rounded-full text-micro", i < step ? "bg-success text-accent-fg" : "bg-line")}>
                   {i < step ? <Check className="h-3 w-3" /> : i + 1}
                 </span>
                 {s}
@@ -140,7 +155,7 @@ export default function Setup() {
           {step === 0 && (
             <div className="space-y-4">
               <StepTitle title="Your organization" body="Shown in reports and the header." />
-              <Field label="Organization name">
+              <Field label="Organization name" error={err("org", !!org)}>
                 <input className="input" value={org} onChange={(e) => setOrg(e.target.value)} placeholder="Acme Corp" autoFocus />
               </Field>
             </div>
@@ -150,16 +165,16 @@ export default function Setup() {
             <div className="space-y-4">
               <StepTitle title="Administrator account" body="This account holds the Administrator role. You can invite more users later." />
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Full name">
+                <Field label="Full name" error={err("name", !!admin.name)}>
                   <input className="input" value={admin.name} onChange={(e) => setAdmin({ ...admin, name: e.target.value })} />
                 </Field>
-                <Field label="Email">
+                <Field label="Email" error={err("email", !!admin.email)}>
                   <input className="input" type="email" value={admin.email} onChange={(e) => setAdmin({ ...admin, email: e.target.value })} />
                 </Field>
-                <Field label="Password" hint="At least 10 characters.">
+                <Field label="Password" hint="At least 10 characters." error={err("password", !!admin.password)}>
                   <input className="input" type="password" value={admin.password} onChange={(e) => setAdmin({ ...admin, password: e.target.value })} />
                 </Field>
-                <Field label="Confirm password" hint={admin.confirm && admin.confirm !== admin.password ? "Passwords don't match." : undefined}>
+                <Field label="Confirm password" error={err("confirm", !!admin.confirm)}>
                   <input className="input" type="password" value={admin.confirm} onChange={(e) => setAdmin({ ...admin, confirm: e.target.value })} />
                 </Field>
               </div>
@@ -172,7 +187,7 @@ export default function Setup() {
                 title="Connect the Wazuh MCP Server"
                 body="Agents reach Wazuh through gensecaihq/Wazuh-MCP-Server over Streamable HTTP. The API key is exchanged for a JWT at /auth/token."
               />
-              <Field label="MCP server base URL" hint="Without /mcp, e.g. https://wazuh-mcp.internal:3000">
+              <Field label="MCP server base URL" hint="Without /mcp, e.g. https://wazuh-mcp.internal:3000" error={err("mcp_url", !!wazuh.mcp_url)}>
                 <input className="input font-mono" value={wazuh.mcp_url} onChange={(e) => setWazuh({ ...wazuh, mcp_url: e.target.value })} />
               </Field>
               <Field label="MCP API key" hint="Response actions need a key with the wazuh:write scope (MCP_API_KEY_SCOPES=wazuh:read wazuh:write).">
@@ -240,16 +255,34 @@ export default function Setup() {
             </div>
           )}
 
+          {!valid[step] && showErrors && (
+            <p role="alert" className="mt-6 text-sm text-danger-text">
+              {blockers[step].length === 1 ? blockers[step][0] : `Finish this step first: ${blockers[step].join(" ")}`}
+            </p>
+          )}
+
           <div className="mt-8 flex items-center justify-between border-t border-line pt-4">
-            <button className="btn-ghost" disabled={step === 0} onClick={() => setStep(step - 1)}>
+            <button type="button" className="btn-ghost" disabled={step === 0} onClick={() => setStep(step - 1)}>
               <ChevronLeft className="h-4 w-4" /> Back
             </button>
             {step < STEPS.length - 1 ? (
-              <button className="btn-primary" disabled={!valid[step]} onClick={() => setStep(step + 1)}>
+              <button
+                type="button"
+                className="btn-primary"
+                // Stays enabled so clicking it can say what is missing.
+                onClick={() => {
+                  if (!valid[step]) {
+                    setShowErrors(true);
+                    return;
+                  }
+                  setShowErrors(false);
+                  setStep(step + 1);
+                }}
+              >
                 Continue <ChevronRight className="h-4 w-4" />
               </button>
             ) : (
-              <button className="btn-primary" disabled={busy} onClick={finish}>
+              <button type="button" className="btn-primary" disabled={busy} onClick={finish}>
                 {busy && <Loader2 className="h-4 w-4 animate-spin" />} Create workspace
               </button>
             )}
@@ -329,7 +362,7 @@ export function AutonomyPicker({ value, onChange, disabled }: { value: AutonomyL
           )}
         >
           <div className="flex items-center gap-2">
-            <span className={cn("rounded-md px-1.5 py-0.5 text-[10px] font-semibold", value === a.id ? "bg-accent text-black" : "bg-line text-muted")}>{a.tag}</span>
+            <span className={cn("rounded-md px-1.5 py-0.5 text-micro font-semibold", value === a.id ? "bg-accent text-accent-fg" : "bg-line text-muted")}>{a.tag}</span>
             <span className="text-sm">{a.label}</span>
             {a.id === "recommend" && <span className="chip ml-auto">default</span>}
           </div>

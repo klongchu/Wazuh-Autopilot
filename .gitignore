@@ -54,3 +54,5 @@ __pycache__/
 .venv/
 ui/dist/
 *.tsbuildinfo
+
+coding_agent.md

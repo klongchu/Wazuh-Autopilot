@@ -3,9 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowDown, ArrowRight, ArrowUp, Bot, ClipboardCheck, Clock, ShieldCheck, Siren, Radio, Activity } from "lucide-react";
 import { useDashboard } from "@/api/hooks";
 import type { DashboardSummary } from "@/api/types";
-import { Card, CardHeader, DeltaChip, EmptyState, ErrorState, PageHeader, RoundIcon, Segmented, Skeleton } from "@/components/ui";
+import { Card, CardHeader, DataTable, DeltaChip, EmptyState, ErrorState, PageHeader, RoundIcon, Segmented, Skeleton } from "@/components/ui";
 import { Donut, Legend, TrafficChart, WorldMap, useColors } from "@/components/charts";
-import { fmtNum, fmtPct, fmtUsd, relTime } from "@/lib/format";
+import { EMPTY, fmtNum, fmtPct, fmtUsd, relTime } from "@/lib/format";
 import { useEvents } from "@/lib/events";
 import { describeEvent } from "@/components/Layout";
 import { cn } from "@/lib/cn";
@@ -16,13 +16,24 @@ export default function Dashboard() {
   const [range, setRange] = useState<Range>("24h");
   const q = useDashboard(range);
   const d = q.data;
+  const pending = d?.kpis.pending_approvals.value ?? 0;
 
   return (
     <div>
       <PageHeader
         title="Command Center"
         subtitle="Wazuh detections, agent activity and containment across your estate"
-        right={<Segmented value={range} onChange={setRange} options={[{ value: "24h", label: "Day" }, { value: "7d", label: "Weekly" }, { value: "30d", label: "Monthly" }]} />}
+        right={
+          <div className="flex items-center gap-2">
+            <Segmented value={range} onChange={setRange} options={[{ value: "24h", label: "Day" }, { value: "7d", label: "Weekly" }, { value: "30d", label: "Monthly" }]} />
+            {/* The one thing a shift lead should do from this page: clear the queue. */}
+            {pending > 0 && (
+              <Link to="/approvals" className="btn-primary btn-sm">
+                Review {pending} approval{pending === 1 ? "" : "s"}
+              </Link>
+            )}
+          </div>
+        }
       />
       {q.error ? (
         <ErrorState error={q.error} onRetry={() => q.refetch()} />
@@ -117,10 +128,10 @@ function SwarmStrip({ d }: { d?: DashboardSummary }) {
   const s = d?.swarm;
   const items = [
     { label: "Agents active", value: s ? `${s.agents_active}/${s.agents_total}` : "—", icon: Bot },
-    { label: "Runs (24h)", value: s ? fmtNum(s.runs_24h) : "—", icon: Activity },
-    { label: "Run success", value: s ? fmtPct(s.success_rate, 1, true) : "—", icon: ShieldCheck },
-    { label: "Tokens (24h)", value: s ? fmtNum(s.tokens_24h) : "—", icon: Radio },
-    { label: "Model cost (24h)", value: s ? fmtUsd(s.cost_24h_usd) : "—", icon: Clock },
+    { label: "Runs (24h)", value: s ? fmtNum(s.runs_24h) : EMPTY, icon: Activity },
+    { label: "Run success", value: s ? fmtPct(s.success_rate, 1, true) : EMPTY, icon: ShieldCheck },
+    { label: "Tokens (24h)", value: s ? fmtNum(s.tokens_24h) : EMPTY, icon: Radio },
+    { label: "Model cost (24h)", value: s ? fmtUsd(s.cost_24h_usd) : EMPTY, icon: Clock },
   ];
   return (
     <Card className="grid grid-cols-2 divide-line sm:grid-cols-3 lg:grid-cols-5 lg:divide-x">
@@ -128,7 +139,7 @@ function SwarmStrip({ d }: { d?: DashboardSummary }) {
         <Link to="/health" key={i.label} className="flex items-center gap-3 px-5 py-3.5 hover:bg-card2/40">
           <i.icon className="h-4 w-4 text-accent" />
           <div>
-            <div className="text-[15px]">{i.value}</div>
+            <div className="text-title-sm">{i.value}</div>
             <div className="text-xs text-muted">{i.label}</div>
           </div>
         </Link>
@@ -190,43 +201,62 @@ function TargetsCard({ d }: { d?: DashboardSummary }) {
         ) : !rows.length ? (
           <EmptyState title="No targets yet" />
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-xs text-muted">
-                <th className="pb-2 text-left font-normal">Endpoint</th>
-                <th className="pb-2 text-right font-normal">Incidents</th>
-                <th className="pb-2 text-right font-normal">Alerts</th>
-                <th className="pb-2 text-right font-normal">Trend</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.slice(0, 10).map((r) => (
-                <tr key={r.agent_id} className="border-t border-line/50">
-                  <td className="py-1.5">
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 rounded bg-card2" style={{ width: `${Math.max(18, (r.alerts / max) * 100)}%` }} />
-                      <div className="relative truncate px-1.5 py-1">
-                        {r.agent_name} <span className="text-xs text-subtle">{r.ip}</span>
-                      </div>
+          <DataTable
+            rows={rows.slice(0, 10)}
+            rowKey={(r) => r.agent_id}
+            dense
+            columns={[
+              {
+                key: "endpoint",
+                header: "Endpoint",
+                // The bar is the point of this table: alert volume read at a glance.
+                cell: (r) => (
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 rounded bg-card2" style={{ width: `${Math.max(18, (r.alerts / max) * 100)}%` }} />
+                    <div className="relative truncate px-1.5">
+                      {r.agent_name} <span className="text-xs text-subtle">{r.ip}</span>
                     </div>
-                  </td>
-                  <td className="py-1.5 text-right">
-                    {r.incidents > 0 ? (
-                      <span className="inline-flex min-w-[26px] justify-center rounded-md border border-danger/30 bg-danger/10 px-1.5 text-xs text-danger">{r.incidents}</span>
-                    ) : (
-                      <span className="text-subtle">--</span>
-                    )}
-                  </td>
-                  <td className="py-1.5 text-right">{fmtNum(r.alerts)}</td>
-                  <td className={cn("py-1.5 text-right", r.trend_pct > 0 ? "text-danger" : "text-success")}>
-                    <span className="inline-flex items-center gap-0.5">
-                      {Math.abs(r.trend_pct).toFixed(1)}%{r.trend_pct > 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                  </div>
+                ),
+              },
+              {
+                key: "incidents",
+                header: "Incidents",
+                sort: (r) => r.incidents,
+                className: "text-right",
+                headerClassName: "text-right",
+                cell: (r) =>
+                  r.incidents > 0 ? (
+                    <span className="inline-flex min-w-[26px] justify-center rounded-md border border-danger/30 bg-danger/10 px-1.5 text-xs text-danger-text">
+                      {r.incidents}
                     </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  ) : (
+                    <span className="text-subtle">{EMPTY}</span>
+                  ),
+              },
+              {
+                key: "alerts",
+                header: "Alerts",
+                sort: (r) => r.alerts,
+                className: "text-right",
+                headerClassName: "text-right",
+                cell: (r) => fmtNum(r.alerts),
+              },
+              {
+                key: "trend",
+                header: "Trend",
+                sort: (r) => r.trend_pct,
+                className: "text-right",
+                headerClassName: "text-right",
+                cell: (r) => (
+                  <span className={cn("inline-flex items-center gap-0.5", r.trend_pct > 0 ? "text-danger-text" : "text-success-text")}>
+                    {Math.abs(r.trend_pct).toFixed(1)}%
+                    {r.trend_pct > 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                  </span>
+                ),
+              },
+            ]}
+          />
         )}
       </div>
     </Card>
@@ -280,7 +310,7 @@ function MitreCard({ d }: { d?: DashboardSummary }) {
               <div className="h-1 flex-1 overflow-hidden rounded-full bg-line">
                 <div className="h-full rounded-full bg-accent/80" style={{ width: `${(r.count / max) * 100}%` }} />
               </div>
-              <span className="w-28 truncate text-right text-[10.5px] text-subtle">{r.tactic}</span>
+              <span className="w-28 truncate text-right text-micro text-subtle">{r.tactic}</span>
             </div>
           </div>
         ))}
@@ -324,7 +354,7 @@ function ActivityFeed() {
             >
               <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
               <span className="min-w-0 flex-1 text-sm">{describeEvent(e.type, d)}</span>
-              <span className="shrink-0 text-[11px] text-subtle">{relTime(new Date(e.at).toISOString())}</span>
+              <span className="shrink-0 text-micro text-subtle">{relTime(new Date(e.at).toISOString())}</span>
             </button>
           );
         })}

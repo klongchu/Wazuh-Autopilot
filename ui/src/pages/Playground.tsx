@@ -136,7 +136,7 @@ export default function Playground() {
             {agent && <AgentAvatar icon={agent.icon} color={agent.avatar_color} size="sm" running={busy} />}
             <div className="min-w-0 flex-1">
               <div className="text-sm">{agent?.name ?? "Select an agent"}</div>
-              <div className="text-[11px] text-muted">
+              <div className="text-micro text-muted">
                 {dryRun ? "Dry run: action tools and state-changing platform tools are stubbed" : "Live: platform tools write to real cases and proposals"}
               </div>
             </div>
@@ -205,7 +205,7 @@ export default function Playground() {
         <Card className="flex min-h-[520px] flex-col">
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
             <span className="text-sm">Event stream</span>
-            <span className="text-[11px] text-muted">{steps.length} events</span>
+            <span className="text-micro text-muted">{steps.length} events</span>
           </div>
           <div className="scrollbar-thin flex-1 space-y-2 overflow-y-auto p-3">
             {!steps.length && <p className="py-10 text-center text-sm text-muted">Model calls, tool calls and handoffs appear here live.</p>}
@@ -229,10 +229,10 @@ function StepRow({ e }: { e: SseEvent }) {
   return (
     <div className="rounded-lg border border-line bg-deep/40">
       <button className="flex w-full items-center gap-2 px-3 py-2 text-left" onClick={() => setOpen(!open)}>
-        <span className={cn("rounded border px-1.5 py-0.5 text-[10px] uppercase", tone)}>{kind}</span>
-        <span className="min-w-0 flex-1 truncate font-mono text-[12px]">{String(d.name ?? d.agent_id ?? e.type)}</span>
-        {typeof d.duration_ms === "number" && <span className="text-[11px] text-subtle">{fmtMs(d.duration_ms)}</span>}
-        {status && status !== "ok" && <span className={cn("text-[11px]", status === "error" || status === "failed" ? "text-danger" : "text-warn")}>{status}</span>}
+        <span className={cn("rounded border px-1.5 py-0.5 text-micro uppercase", tone)}>{kind}</span>
+        <span className="min-w-0 flex-1 truncate font-mono text-meta">{String(d.name ?? d.agent_id ?? e.type)}</span>
+        {typeof d.duration_ms === "number" && <span className="text-micro text-subtle">{fmtMs(d.duration_ms)}</span>}
+        {status && status !== "ok" && <span className={cn("text-micro", status === "error" || status === "failed" ? "text-danger" : "text-warn")}>{status}</span>}
       </button>
       {open && (
         <div className="border-t border-line p-2">

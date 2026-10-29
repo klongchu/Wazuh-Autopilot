@@ -23,9 +23,9 @@ export default function Roles() {
                   {roles.map((r) => (
                     <Card key={r.id} className="p-4">
                       <div className="text-sm">{r.label}</div>
-                      <div className="font-mono text-[11px] text-subtle">{r.id}</div>
+                      <div className="font-mono text-micro text-subtle">{r.id}</div>
                       <p className="mt-2 text-xs text-muted">{r.description}</p>
-                      <div className="mt-3 text-[11px] text-accent">{r.permissions.includes("*") ? "all permissions" : `${r.permissions.length} permissions`}</div>
+                      <div className="mt-3 text-micro text-accent">{r.permissions.includes("*") ? "all permissions" : `${r.permissions.length} permissions`}</div>
                     </Card>
                   ))}
                 </div>
@@ -46,7 +46,7 @@ export default function Roles() {
                         {groups.map((g) => (
                           <Fragment key={g}>
                             <tr className="bg-card2/40">
-                              <td colSpan={roles.length + 1} className="px-3 py-1.5 text-[11px] uppercase tracking-wide text-subtle">
+                              <td colSpan={roles.length + 1} className="px-3 py-1.5 text-micro uppercase tracking-wide text-subtle">
                                 {g}
                               </td>
                             </tr>

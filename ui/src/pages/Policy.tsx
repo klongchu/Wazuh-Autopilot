@@ -3,7 +3,7 @@ import { Save, ShieldAlert } from "lucide-react";
 import { useActionCatalog, usePolicy, useSavePolicy } from "@/api/hooks";
 import type { ActionRule, Policy as PolicyT } from "@/api/types";
 import { errorMessage } from "@/api/client";
-import { Badge, Card, CardHeader, ErrorState, Field, PageBody, PageHeader, riskTone, Select, SkeletonRows, Spinner, TagInput, Toggle } from "@/components/ui";
+import { Badge, Card, CardHeader, ErrorState, Field, NumberInput, PageBody, PageHeader, riskTone, Select, SkeletonRows, Spinner, TagInput, Toggle } from "@/components/ui";
 import { AutonomyPicker } from "./Setup";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/lib/toast";
@@ -35,14 +35,14 @@ export default function Policy() {
         right={
           editable && (
             <button className="btn-primary" disabled={!dirty || save.isPending} onClick={() => save.mutate(p, { onSuccess: () => toast.success("Policy saved"), onError: (e) => toast.error("Save failed", errorMessage(e)) })}>
-              {save.isPending ? <Spinner className="text-black" /> : <Save className="h-4 w-4" />} Save policy
+              {save.isPending ? <Spinner className="text-accent-fg" /> : <Save className="h-4 w-4" />} Save policy
             </button>
           )
         }
       />
       <PageBody>
         <Card className="p-5">
-          <h3 className="mb-1 text-[15px]">Platform autonomy level</h3>
+          <h3 className="mb-1 text-title-sm">Platform autonomy level</h3>
           <p className="mb-4 text-sm text-muted">Agents never call Wazuh active-response tools directly. They propose; this policy decides who approves and who executes.</p>
           <AutonomyPicker value={p.autonomy_level} onChange={(v) => setP({ ...p, autonomy_level: v })} disabled={!editable} />
         </Card>
@@ -68,7 +68,7 @@ export default function Policy() {
                     <tr key={r.type} className="border-b border-line/60 last:border-0">
                       <td className="td">
                         <div>{c?.label ?? r.type}</div>
-                        <div className="text-[11px] text-subtle">
+                        <div className="text-micro text-subtle">
                           <span className="font-mono">{c?.mcp_tool ?? r.type}</span>
                           {c?.d3fend && <> · D3FEND {c.d3fend}</>}
                           {c && !c.reversible && <span className="text-warn"> · irreversible</span>}
@@ -96,7 +96,7 @@ export default function Policy() {
                         </div>
                       </td>
                       <td className="td">
-                        <input className="input w-20" type="number" min={0} value={r.max_per_hour} disabled={!editable} onChange={(e) => setRule(i, { max_per_hour: Number(e.target.value) })} />
+                        <NumberInput className="w-20" min={0} max={1000} value={r.max_per_hour} disabled={!editable} onChange={(v) => setRule(i, { max_per_hour: v })} />
                       </td>
                       <td className="td">
                         <Toggle checked={r.enabled} disabled={!editable} onChange={(v) => setRule(i, { enabled: v })} />
@@ -113,7 +113,7 @@ export default function Policy() {
           <Card className="space-y-4 p-5">
             <div className="flex items-center gap-2">
               <ShieldAlert className="h-4 w-4 text-accent" />
-              <h3 className="text-[15px]">Protected targets</h3>
+              <h3 className="text-title-sm">Protected targets</h3>
             </div>
             <p className="text-sm text-muted">Never auto-executed against, whatever the autonomy level. Actions on these always need a human.</p>
             <Field label="IP addresses / CIDRs">
@@ -130,9 +130,9 @@ export default function Policy() {
             </Field>
           </Card>
           <Card className="space-y-5 p-5">
-            <h3 className="text-[15px]">Approval controls</h3>
+            <h3 className="text-title-sm">Approval controls</h3>
             <Field label="Approval expiry (minutes)" hint="Proposed actions expire if nobody approves them in time.">
-              <input className="input w-32" type="number" min={5} value={p.approval_expiry_minutes} disabled={!editable} onChange={(e) => setP({ ...p, approval_expiry_minutes: Number(e.target.value) })} />
+              <NumberInput className="w-32" min={5} max={10080} value={p.approval_expiry_minutes} disabled={!editable} onChange={(v) => setP({ ...p, approval_expiry_minutes: v })} />
             </Field>
             <Toggle checked={p.require_two_person} disabled={!editable} onChange={(v) => setP({ ...p, require_two_person: v })} label="Two-person rule: the approver can't also execute" />
             <Toggle checked={p.business_hours_only} disabled={!editable} onChange={(v) => setP({ ...p, business_hours_only: v })} label="Autonomous execution only during business hours" />

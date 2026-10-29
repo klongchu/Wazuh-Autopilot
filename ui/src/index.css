@@ -17,13 +17,23 @@
   --line: 33 32 33;
   --fg: 236 235 236;
   --muted: 138 133 137;
-  --subtle: 92 88 91;
+  /* Raised from 92 88 91 (2.70:1) to clear WCAG AA 4.5:1 on --card. */
+  --subtle: 130 125 129;
   --accent: 255 129 39;
   --danger: 239 68 68;
   --success: 34 197 94;
-  --info: 79 107 255;
+  /* Raised from 79 107 255 (4.25:1) to clear AA on --card. */
+  --info: 110 135 255;
   --warn: 234 179 8;
   --glow: 255 129 39;
+  /* Foreground that sits on a solid --accent fill. */
+  --accent-fg: 0 0 0;
+  /* Text-safe variants. Dark-mode hues already clear AA, so they mirror the base. */
+  --accent-text: 255 129 39;
+  --danger-text: 239 68 68;
+  --success-text: 34 197 94;
+  --warn-text: 234 179 8;
+  --info-text: 110 135 255;
   color-scheme: dark;
 }
 
@@ -35,13 +45,22 @@
   --line: 229 226 223;
   --fg: 24 21 22;
   --muted: 110 104 107;
-  --subtle: 160 154 157;
+  /* Darkened from 160 154 157 (2.75:1) to clear WCAG AA 4.5:1 on white. */
+  --subtle: 118 112 115;
   --accent: 240 110 20;
   --danger: 220 38 38;
   --success: 22 163 74;
   --info: 59 87 235;
   --warn: 202 138 4;
   --glow: 255 150 70;
+  --accent-fg: 0 0 0;
+  /* The base hues above are tuned for fills and borders (3:1 is enough there).
+     As text on white they fail AA, so these darkened variants carry the text. */
+  --accent-text: 180 74 6;
+  --danger-text: 185 28 28;
+  --success-text: 15 118 50;
+  --warn-text: 146 100 0;
+  --info-text: 37 62 190;
   color-scheme: light;
 }
 
@@ -65,10 +84,11 @@ body {
     background-image: radial-gradient(ellipse 60% 70% at 45% 55%, rgb(var(--glow) / 0.1), transparent 70%);
   }
   .section-label {
-    @apply px-2 pb-1.5 pt-4 text-[11px] font-medium tracking-wide text-subtle;
+    @apply px-2 pb-1.5 pt-4 text-micro font-medium tracking-wide text-subtle;
   }
+  /* min-h rather than h so the control grows when the user enlarges text. */
   .input {
-    @apply h-9 w-full rounded-lg border border-line bg-deep/60 px-3 text-sm text-fg placeholder:text-subtle outline-none transition focus:border-accent/60 focus:ring-2 focus:ring-accent/15;
+    @apply min-h-9 w-full rounded-lg border border-line bg-deep/60 px-3 py-1.5 text-sm text-fg placeholder:text-subtle outline-none transition focus:border-accent/60 focus:ring-2 focus:ring-accent/15;
   }
   .textarea {
     @apply w-full rounded-lg border border-line bg-deep/60 px-3 py-2 text-sm text-fg placeholder:text-subtle outline-none transition focus:border-accent/60 focus:ring-2 focus:ring-accent/15;
@@ -76,29 +96,37 @@ body {
   .label {
     @apply mb-1.5 block text-xs font-medium text-muted;
   }
+  .focus-ring {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-bg;
+  }
   .btn {
-    @apply inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50;
+    @apply focus-ring inline-flex min-h-9 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3.5 py-1.5 text-sm font-medium transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100;
   }
   .btn-primary {
-    @apply btn bg-accent text-black hover:brightness-110;
+    @apply btn bg-accent text-accent-fg hover:brightness-110 active:brightness-95;
   }
   .btn-secondary {
-    @apply btn border border-line bg-card2 text-fg hover:border-subtle/60;
+    @apply btn border border-line bg-card2 text-fg hover:border-subtle/60 active:bg-line/60;
   }
   .btn-ghost {
-    @apply btn text-muted hover:bg-card2 hover:text-fg;
+    @apply btn text-muted hover:bg-card2 hover:text-fg active:bg-line/60;
   }
   .btn-danger {
-    @apply btn border border-danger/40 bg-danger/10 text-danger hover:bg-danger/20;
+    @apply btn border border-danger/40 bg-danger/10 text-danger-text hover:bg-danger/20 active:bg-danger/30;
   }
   .btn-success {
-    @apply btn border border-success/40 bg-success/10 text-success hover:bg-success/20;
+    @apply btn border border-success/40 bg-success/10 text-success-text hover:bg-success/20 active:bg-success/30;
   }
   .btn-sm {
-    @apply h-7 px-2.5 text-xs;
+    @apply min-h-7 px-2.5 py-1 text-xs;
   }
   .icon-btn {
-    @apply inline-flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-card text-muted transition hover:text-fg;
+    @apply focus-ring inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg border border-line bg-card text-muted transition hover:text-fg active:scale-[0.98] active:bg-card2 disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100;
+  }
+  /* Buttons that carry their own skin (tabs, segmented, sort headers, list rows)
+     still need a visible focus stop and a pressed state. */
+  .btn-bare {
+    @apply focus-ring transition active:opacity-80 disabled:cursor-not-allowed disabled:opacity-50;
   }
   .th {
     @apply px-3 py-2.5 text-left text-xs font-normal text-muted;
@@ -107,10 +135,30 @@ body {
     @apply px-3 py-2.5 text-sm;
   }
   .chip {
-    @apply inline-flex items-center gap-1 rounded-md border border-line bg-card2 px-1.5 py-0.5 text-[11px] text-muted;
+    @apply inline-flex items-center gap-1 rounded-md border border-line bg-card2 px-1.5 py-0.5 text-micro text-muted;
   }
   .kbd {
-    @apply rounded border border-line bg-card2 px-1.5 py-0.5 text-[10px] text-muted;
+    @apply rounded border border-line bg-card2 px-1.5 py-0.5 text-micro text-muted;
+  }
+  /* Only visible to assistive tech until focused — used by the skip-to-content link. */
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:rounded-lg focus:border focus:border-accent/60 focus:bg-card focus:px-3 focus:py-2 focus:text-sm focus:text-fg;
+  }
+}
+
+/* Touch devices get WCAG 2.5.5 sized hit areas without compressing the
+   information density this console relies on at a desk. */
+@media (pointer: coarse) {
+  .btn,
+  .icon-btn,
+  .input {
+    min-height: 44px;
+  }
+  .icon-btn {
+    min-width: 44px;
+  }
+  .btn-sm {
+    min-height: 40px;
   }
 }
 
@@ -166,7 +214,7 @@ body {
   @apply my-0.5;
 }
 .markdown code {
-  @apply rounded bg-card2 px-1 py-0.5 font-mono text-[12px] text-accent;
+  @apply rounded bg-card2 px-1 py-0.5 font-mono text-meta text-accent-text;
 }
 .markdown pre {
   @apply my-2 overflow-x-auto rounded-lg border border-line bg-deep p-3;
@@ -182,7 +230,7 @@ body {
   @apply border border-line px-2 py-1 text-left;
 }
 .markdown a {
-  @apply text-accent underline-offset-2 hover:underline;
+  @apply text-accent-text underline-offset-2 hover:underline;
 }
 .markdown blockquote {
   @apply my-2 border-l-2 border-accent/60 pl-3 text-muted;

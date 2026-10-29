@@ -246,7 +246,7 @@ export function Donut({
       </ResponsiveContainer>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
         <div className="text-xl">{centerValue ?? fmtNum(total)}</div>
-        {centerLabel && <div className="text-[11px] text-muted">{centerLabel}</div>}
+        {centerLabel && <div className="text-micro text-muted">{centerLabel}</div>}
       </div>
     </div>
   );
@@ -350,7 +350,7 @@ export function WorldMap({ points, height = 340 }: { points: MapPoint[]; height?
           </div>
           <div className="mt-2 flex items-baseline justify-between">
             <span>
-              <span className="text-sm text-fg">{fmtNum(top.value)}</span> <span className="text-[10px] text-muted">attacks</span>
+              <span className="text-sm text-fg">{fmtNum(top.value)}</span> <span className="text-micro text-muted">attacks</span>
             </span>
             {top.pct !== undefined && <span className="text-fg">{top.pct.toFixed(0)}%</span>}
           </div>

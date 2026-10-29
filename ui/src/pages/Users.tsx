@@ -137,7 +137,7 @@ function UserModal({ user, onClose }: { user: User | "new" | null; onClose: () =
               );
             }}
           >
-            {save.isPending && <Spinner className="text-black" />} {isNew ? "Create user" : "Save"}
+            {save.isPending && <Spinner className="text-accent-fg" />} {isNew ? "Create user" : "Save"}
           </button>
         </>
       }

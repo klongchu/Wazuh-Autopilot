@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { cloneElement, isValidElement, useEffect, useId, useMemo, useRef, useState, type ReactElement, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -27,7 +27,7 @@ export function CardHeader({
   return (
     <div className={cn("flex flex-wrap items-center justify-between gap-3 px-5 pt-4", className)}>
       <div className="min-w-0">
-        <h3 className="text-[15px] font-normal text-fg">{title}</h3>
+        <h3 className="text-title-sm font-medium text-fg">{title}</h3>
         {subtitle && <p className="mt-0.5 text-xs text-muted">{subtitle}</p>}
       </div>
       {right && <div className="flex items-center gap-2">{right}</div>}
@@ -35,11 +35,38 @@ export function CardHeader({
   );
 }
 
-export function PageHeader({ title, subtitle, right }: { title: ReactNode; subtitle?: ReactNode; right?: ReactNode }) {
+/**
+ * Keeps the browser tab title in sync with the page. Needed for history,
+ * bookmarks and tab-switching: every page used to read "Wazuh Autopilot".
+ */
+export function useDocumentTitle(title: string | undefined) {
+  useEffect(() => {
+    if (!title) return;
+    const prev = document.title;
+    document.title = `${title} · Wazuh Autopilot`;
+    return () => {
+      document.title = prev;
+    };
+  }, [title]);
+}
+
+export function PageHeader({
+  title,
+  subtitle,
+  right,
+  documentTitle,
+}: {
+  title: ReactNode;
+  subtitle?: ReactNode;
+  right?: ReactNode;
+  /** Overrides the tab title when `title` is not a plain string. */
+  documentTitle?: string;
+}) {
+  useDocumentTitle(documentTitle ?? (typeof title === "string" ? title : undefined));
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-4 md:px-6">
       <div className="min-w-0">
-        <h1 className="text-[22px] font-normal tracking-tight text-fg md:text-2xl">{title}</h1>
+        <h1 className="text-page font-normal tracking-tight text-fg md:text-2xl">{title}</h1>
         {subtitle && <p className="mt-0.5 text-sm text-muted">{subtitle}</p>}
       </div>
       {right && <div className="flex flex-wrap items-center gap-2">{right}</div>}
@@ -56,18 +83,20 @@ export function PageBody({ children, className }: { children: ReactNode; classNa
 // ---------------------------------------------------------------------------
 type Tone = "neutral" | "accent" | "danger" | "success" | "info" | "warn";
 
+// The tint keeps the base hue (3:1 is enough for a fill); the label uses the
+// text-safe variant so it clears 4.5:1 in both themes.
 const toneCls: Record<Tone, string> = {
   neutral: "border-line bg-card2 text-muted",
-  accent: "border-accent/30 bg-accent/10 text-accent",
-  danger: "border-danger/30 bg-danger/10 text-danger",
-  success: "border-success/30 bg-success/10 text-success",
-  info: "border-info/30 bg-info/10 text-info",
-  warn: "border-warn/30 bg-warn/10 text-warn",
+  accent: "border-accent/30 bg-accent/10 text-accent-text",
+  danger: "border-danger/30 bg-danger/10 text-danger-text",
+  success: "border-success/30 bg-success/10 text-success-text",
+  info: "border-info/30 bg-info/10 text-info-text",
+  warn: "border-warn/30 bg-warn/10 text-warn-text",
 };
 
 export function Badge({ tone = "neutral", children, className, dot }: { tone?: Tone; children: ReactNode; className?: string; dot?: boolean }) {
   return (
-    <span className={cn("inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border px-1.5 py-0.5 text-[11px] font-medium", toneCls[tone], className)}>
+    <span className={cn("inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border px-1.5 py-0.5 text-micro font-medium", toneCls[tone], className)}>
       {dot && <span className="h-1.5 w-1.5 rounded-full bg-current" />}
       {children}
     </span>
@@ -164,10 +193,10 @@ export function DeltaChip({ value, goodWhenDown = false }: { value: number; good
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-0.5 rounded-md border px-1.5 py-px text-[11px]",
+        "inline-flex items-center gap-0.5 rounded-md border px-1.5 py-px text-micro",
         good === null && "border-line bg-card2 text-muted",
         good === true && "border-line bg-card2 text-fg/80",
-        good === false && "border-danger/30 bg-danger/10 text-danger",
+        good === false && "border-danger/30 bg-danger/10 text-danger-text",
       )}
     >
       {Math.abs(value).toFixed(1)}%{!flat && (up ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
@@ -190,13 +219,15 @@ export function Segmented<T extends string>({
   size?: "sm" | "md";
 }) {
   return (
-    <div className="inline-flex rounded-lg border border-line bg-deep/50 p-0.5">
+    <div role="group" className="inline-flex rounded-lg border border-line bg-deep/50 p-0.5">
       {options.map((o) => (
         <button
           key={o.value}
+          type="button"
+          aria-pressed={value === o.value}
           onClick={() => onChange(o.value)}
           className={cn(
-            "rounded-md transition",
+            "btn-bare rounded-md",
             size === "sm" ? "px-2.5 py-1 text-xs" : "px-3.5 py-1.5 text-sm",
             value === o.value ? "bg-card2 text-fg shadow-sm ring-1 ring-line" : "text-muted hover:text-fg",
           )}
@@ -217,19 +248,43 @@ export function Tabs<T extends string>({
   onChange: (v: T) => void;
   tabs: { value: T; label: ReactNode; count?: number }[];
 }) {
+  const list = useRef<HTMLDivElement>(null);
+  const selected = Math.max(
+    0,
+    tabs.findIndex((t) => t.value === value),
+  );
+  // Roving tabindex: Tab enters the strip at the selected tab, arrows move
+  // between tabs and select as they go (WAI-ARIA automatic activation).
+  const goTo = (i: number) => {
+    const next = (i + tabs.length) % tabs.length;
+    onChange(tabs[next].value);
+    list.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+  };
+  const onKeyDown = (e: React.KeyboardEvent, i: number) => {
+    const target =
+      e.key === "ArrowRight" ? i + 1 : e.key === "ArrowLeft" ? i - 1 : e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : null;
+    if (target === null) return;
+    e.preventDefault();
+    goTo(target);
+  };
   return (
-    <div className="scrollbar-thin flex gap-1 overflow-x-auto border-b border-line">
-      {tabs.map((t) => (
+    <div ref={list} role="tablist" className="scrollbar-thin flex gap-1 overflow-x-auto border-b border-line">
+      {tabs.map((t, i) => (
         <button
           key={t.value}
+          type="button"
+          role="tab"
+          aria-selected={value === t.value}
+          tabIndex={i === selected ? 0 : -1}
+          onKeyDown={(e) => onKeyDown(e, i)}
           onClick={() => onChange(t.value)}
           className={cn(
-            "-mb-px flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm transition",
+            "btn-bare -mb-px flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm",
             value === t.value ? "border-accent text-fg" : "border-transparent text-muted hover:text-fg",
           )}
         >
           {t.label}
-          {t.count !== undefined && <span className="rounded bg-card2 px-1.5 text-[10px] text-muted">{t.count}</span>}
+          {t.count !== undefined && <span className="rounded bg-card2 px-1.5 text-micro text-muted">{t.count}</span>}
         </button>
       ))}
     </div>
@@ -239,13 +294,60 @@ export function Tabs<T extends string>({
 // ---------------------------------------------------------------------------
 // Overlays
 // ---------------------------------------------------------------------------
-function useEsc(open: boolean, onClose: () => void) {
+export function useEsc(open: boolean, onClose: () => void) {
   useEffect(() => {
     if (!open) return;
     const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
   }, [open, onClose]);
+}
+
+const FOCUSABLE =
+  'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+
+/**
+ * Modal behaviour shared by Modal, Drawer and the mobile sidebar: Esc closes,
+ * Tab stays inside, the page behind does not scroll, and focus returns to
+ * whatever opened the overlay. Attach the returned ref to the dialog element.
+ */
+export function useDialog<T extends HTMLElement>(open: boolean, onClose: () => void) {
+  const ref = useRef<T>(null);
+  useEsc(open, onClose);
+  useEffect(() => {
+    if (!open) return;
+    const opener = document.activeElement as HTMLElement | null;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const node = ref.current;
+    const focusables = () => Array.from(node?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []).filter((el) => el.offsetParent !== null);
+    // `data-autofocus` rather than React's autoFocus: autoFocus fires during
+    // mount, before this effect, so the opener we restore to would be lost.
+    (node?.querySelector<HTMLElement>("[data-autofocus]") ?? focusables()[0] ?? node)?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const items = focusables();
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      const outside = !node?.contains(active);
+      if (e.shiftKey && (active === first || outside)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (active === last || outside)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey, true);
+    return () => {
+      document.removeEventListener("keydown", onKey, true);
+      document.body.style.overflow = prevOverflow;
+      opener?.focus?.();
+    };
+  }, [open, onClose]);
+  return ref;
 }
 
 export function Modal({
@@ -263,15 +365,28 @@ export function Modal({
   footer?: ReactNode;
   width?: string;
 }) {
-  useEsc(open, onClose);
+  const ref = useDialog<HTMLDivElement>(open, onClose);
+  const titleId = useId();
   if (!open) return null;
   return createPortal(
     <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div role="dialog" aria-modal className={cn("card relative flex max-h-[90vh] w-full flex-col bg-card shadow-2xl", width)}>
+      <div className="absolute inset-0 animate-fadeIn bg-black/60 backdrop-blur-sm motion-reduce:animate-none" onClick={onClose} />
+      <div
+        ref={ref}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className={cn(
+          "card relative flex max-h-[90vh] w-full animate-popIn flex-col bg-card shadow-2xl focus:outline-none motion-reduce:animate-none",
+          width,
+        )}
+      >
         <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
-          <h3 className="text-base font-normal">{title}</h3>
-          <button className="text-muted hover:text-fg" onClick={onClose} aria-label="Close">
+          <h3 id={titleId} className="text-base font-normal">
+            {title}
+          </h3>
+          <button type="button" className="icon-btn border-transparent bg-transparent" onClick={onClose} aria-label="Close">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -300,18 +415,31 @@ export function Drawer({
   footer?: ReactNode;
   width?: string;
 }) {
-  useEsc(open, onClose);
+  const ref = useDialog<HTMLElement>(open, onClose);
+  const titleId = useId();
   if (!open) return null;
   return createPortal(
     <div className="fixed inset-0 z-[70] flex justify-end">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" onClick={onClose} />
-      <aside className={cn("relative flex h-full w-full flex-col border-l border-line bg-card shadow-2xl", width)}>
+      <div className="absolute inset-0 animate-fadeIn bg-black/50 backdrop-blur-[2px] motion-reduce:animate-none" onClick={onClose} />
+      <aside
+        ref={ref}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className={cn(
+          "relative flex h-full w-full animate-slideInRight flex-col border-l border-line bg-card shadow-2xl focus:outline-none motion-reduce:animate-none",
+          width,
+        )}
+      >
         <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
           <div className="min-w-0">
-            <h3 className="truncate text-base font-normal">{title}</h3>
+            <h3 id={titleId} className="truncate text-base font-normal">
+              {title}
+            </h3>
             {subtitle && <div className="mt-0.5 text-xs text-muted">{subtitle}</div>}
           </div>
-          <button className="icon-btn h-8 w-8" onClick={onClose} aria-label="Close">
+          <button type="button" className="icon-btn shrink-0" onClick={onClose} aria-label="Close">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -345,6 +473,7 @@ export function ConfirmDialog({
   loading?: boolean;
 }) {
   const [reason, setReason] = useState("");
+  const reasonId = useId();
   useEffect(() => {
     if (open) setReason("");
   }, [open]);
@@ -356,10 +485,15 @@ export function ConfirmDialog({
       title={title}
       footer={
         <>
-          <button className="btn-secondary" onClick={onClose}>
+          <button type="button" className="btn-secondary" onClick={onClose}>
             Cancel
           </button>
-          <button className={cls} disabled={loading || (!!requireReason && !reason.trim())} onClick={() => onConfirm(reason.trim())}>
+          <button
+            type="button"
+            className={cls}
+            disabled={loading || (!!requireReason && !reason.trim())}
+            onClick={() => onConfirm(reason.trim())}
+          >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             {confirmLabel}
           </button>
@@ -369,8 +503,17 @@ export function ConfirmDialog({
       {body && <div className="text-sm text-muted">{body}</div>}
       {requireReason !== undefined && (
         <div className="mt-3">
-          <label className="label">{requireReason}</label>
-          <textarea className="textarea" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} autoFocus />
+          <label className="label" htmlFor={reasonId}>
+            {requireReason}
+          </label>
+          <textarea
+            id={reasonId}
+            className="textarea"
+            rows={3}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            data-autofocus
+          />
         </div>
       )}
     </Modal>
@@ -420,7 +563,7 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
       <div className="text-sm font-medium">Couldn't load this</div>
       <div className="mt-1 max-w-md break-words text-sm text-muted">{errorMessage(error)}</div>
       {onRetry && (
-        <button className="btn-secondary btn-sm mt-4" onClick={onRetry}>
+        <button type="button" className="btn-secondary btn-sm mt-4" onClick={onRetry}>
           Retry
         </button>
       )}
@@ -466,6 +609,7 @@ export function DataTable<R>({
   columns,
   rowKey,
   onRowClick,
+  rowLabel,
   initialSort,
   empty,
   dense,
@@ -474,6 +618,8 @@ export function DataTable<R>({
   columns: Column<R>[];
   rowKey: (r: R) => string;
   onRowClick?: (r: R) => void;
+  /** Accessible name for a clickable row, e.g. "Open alert 12345". */
+  rowLabel?: (r: R) => string;
   initialSort?: { key: string; dir: "asc" | "desc" };
   empty?: ReactNode;
   dense?: boolean;
@@ -503,10 +649,15 @@ export function DataTable<R>({
         <thead>
           <tr className="border-b border-line">
             {columns.map((c) => (
-              <th key={c.key} className={cn("th", c.headerClassName)}>
+              <th
+                key={c.key}
+                aria-sort={sort?.key === c.key ? (sort.dir === "asc" ? "ascending" : "descending") : c.sort ? "none" : undefined}
+                className={cn("th", c.headerClassName)}
+              >
                 {c.sort ? (
                   <button
-                    className="inline-flex items-center gap-1 hover:text-fg"
+                    type="button"
+                    className="btn-bare inline-flex items-center gap-1 hover:text-fg"
                     onClick={() =>
                       setSort((s) => (s?.key === c.key ? { key: c.key, dir: s.dir === "asc" ? "desc" : "asc" } : { key: c.key, dir: "desc" }))
                     }
@@ -533,8 +684,27 @@ export function DataTable<R>({
           {sorted.map((r) => (
             <tr
               key={rowKey(r)}
+              // A clickable row is the only way into some detail views, so it has
+              // to be reachable and operable from the keyboard too.
               onClick={onRowClick ? () => onRowClick(r) : undefined}
-              className={cn("border-b border-line/60 last:border-0", onRowClick && "cursor-pointer hover:bg-card2/60")}
+              onKeyDown={
+                onRowClick
+                  ? (e) => {
+                      if (e.target !== e.currentTarget) return; // let controls inside the row keep their keys
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        onRowClick(r);
+                      }
+                    }
+                  : undefined
+              }
+              tabIndex={onRowClick ? 0 : undefined}
+              role={onRowClick ? "button" : undefined}
+              aria-label={onRowClick ? rowLabel?.(r) : undefined}
+              className={cn(
+                "border-b border-line/60 last:border-0",
+                onRowClick && "focus-ring cursor-pointer hover:bg-card2/60",
+              )}
             >
               {columns.map((c) => (
                 <td key={c.key} className={cn("td", dense && "py-2", c.className)}>
@@ -572,12 +742,17 @@ export function JsonView({ value, collapsed = false, maxHeight = "max-h-[480px]"
   }, [value]);
   return (
     <div className="rounded-lg border border-line bg-deep">
-      <button className="flex w-full items-center gap-1 px-3 py-1.5 text-left text-[11px] text-muted hover:text-fg" onClick={() => setOpen(!open)}>
+      <button
+        type="button"
+        aria-expanded={open}
+        className="btn-bare flex w-full items-center gap-1 px-3 py-1.5 text-left text-micro text-muted hover:text-fg"
+        onClick={() => setOpen(!open)}
+      >
         {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
         JSON · {text.length.toLocaleString()} chars
       </button>
       {open && (
-        <pre className={cn("scrollbar-thin overflow-auto border-t border-line px-3 py-2 font-mono text-[11.5px] leading-relaxed text-fg/85", maxHeight)}>
+        <pre className={cn("scrollbar-thin overflow-auto border-t border-line px-3 py-2 font-mono text-micro leading-relaxed text-fg/85", maxHeight)}>
           {text}
         </pre>
       )}
@@ -588,28 +763,152 @@ export function JsonView({ value, collapsed = false, maxHeight = "max-h-[480px]"
 // ---------------------------------------------------------------------------
 // Form controls
 // ---------------------------------------------------------------------------
-export function Field({ label, hint, children, className }: { label: ReactNode; hint?: ReactNode; children: ReactNode; className?: string }) {
+export function Field({
+  label,
+  hint,
+  error,
+  children,
+  className,
+}: {
+  label: ReactNode;
+  hint?: ReactNode;
+  /** Validation message. Shown next to the control and announced when it appears. */
+  error?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  const uid = useId();
+  const hintId = `${uid}-hint`;
+  const errorId = `${uid}-error`;
+  const describedBy = [error ? errorId : null, hint ? hintId : null].filter(Boolean).join(" ") || undefined;
+  // Wire the label and the messages to whatever control was passed in, so the
+  // error is tied to the field it belongs to rather than floating next to it.
+  const single = isValidElement(children) ? (children as ReactElement<{ id?: string }>) : null;
+  const controlId = single?.props.id ?? uid;
+  const control = single
+    ? cloneElement(single as ReactElement<Record<string, unknown>>, {
+        id: controlId,
+        "aria-invalid": error ? true : undefined,
+        "aria-describedby": describedBy,
+      })
+    : children;
   return (
     <div className={className}>
-      <label className="label">{label}</label>
-      {children}
-      {hint && <p className="mt-1 text-[11px] text-subtle">{hint}</p>}
+      <label className="label" htmlFor={single ? controlId : undefined}>
+        {label}
+      </label>
+      {control}
+      {error && (
+        <p id={errorId} role="alert" className="mt-1 text-micro text-danger-text">
+          {error}
+        </p>
+      )}
+      {hint && (
+        <p id={hintId} className="mt-1 text-micro text-subtle">
+          {hint}
+        </p>
+      )}
     </div>
   );
 }
 
-export function Toggle({ checked, onChange, disabled, label }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean; label?: ReactNode }) {
+/**
+ * Numeric input that enforces its own bounds. A bare <input type="number"> only
+ * validates `min`/`max` on form submit, and these fields live outside forms, so
+ * an empty or out-of-range value used to be saved as-is (Number("") === 0).
+ */
+export function NumberInput({
+  value,
+  onChange,
+  min,
+  max,
+  step,
+  disabled,
+  className,
+  id,
+  "aria-describedby": describedBy,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+  disabled?: boolean;
+  className?: string;
+  id?: string;
+  "aria-describedby"?: string;
+}) {
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => setDraft(String(value)), [value]);
+  const commit = () => {
+    const n = Number(draft);
+    if (!draft.trim() || Number.isNaN(n)) {
+      setDraft(String(value));
+      return;
+    }
+    const clamped = Math.min(max ?? Infinity, Math.max(min ?? -Infinity, n));
+    setDraft(String(clamped));
+    if (clamped !== value) onChange(clamped);
+  };
+  return (
+    <input
+      id={id}
+      aria-describedby={describedBy}
+      type="number"
+      inputMode="numeric"
+      className={cn("input", className)}
+      value={draft}
+      min={min}
+      max={max}
+      step={step}
+      disabled={disabled}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") commit();
+      }}
+    />
+  );
+}
+
+export function Toggle({
+  checked,
+  onChange,
+  disabled,
+  label,
+  id,
+  "aria-describedby": describedBy,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  disabled?: boolean;
+  label?: ReactNode;
+  id?: string;
+  "aria-describedby"?: string;
+}) {
   return (
     <label className={cn("inline-flex cursor-pointer items-center gap-2.5", disabled && "cursor-not-allowed opacity-50")}>
       <button
         type="button"
         role="switch"
+        id={id}
         aria-checked={checked}
+        aria-describedby={describedBy}
         disabled={disabled}
         onClick={() => onChange(!checked)}
-        className={cn("relative h-5 w-9 rounded-full border transition", checked ? "border-accent bg-accent" : "border-line bg-card2")}
+        className={cn(
+          "focus-ring relative h-5 w-9 shrink-0 rounded-full border transition",
+          checked ? "border-accent bg-accent" : "border-subtle bg-card2",
+        )}
       >
-        <span className={cn("absolute top-0.5 h-3.5 w-3.5 rounded-full bg-white shadow transition", checked ? "left-[18px]" : "left-0.5")} />
+        {/* The off-state knob needs its own contrast against --card2: white on
+            white is invisible in the light theme. */}
+        <span
+          className={cn(
+            "absolute top-0.5 h-3.5 w-3.5 rounded-full shadow transition",
+            checked ? "left-[18px] bg-white" : "left-0.5 bg-fg/80",
+          )}
+        />
       </button>
       {label && <span className="text-sm">{label}</span>}
     </label>
@@ -622,16 +921,30 @@ export function Select({
   options,
   className,
   disabled,
+  id,
+  "aria-invalid": ariaInvalid,
+  "aria-describedby": describedBy,
 }: {
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
   className?: string;
   disabled?: boolean;
+  id?: string;
+  "aria-invalid"?: boolean;
+  "aria-describedby"?: string;
 }) {
   return (
     <div className={cn("relative", className)}>
-      <select className="input appearance-none pr-8" value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)}>
+      <select
+        id={id}
+        aria-invalid={ariaInvalid}
+        aria-describedby={describedBy}
+        className="input appearance-none pr-8"
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+      >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
@@ -660,7 +973,12 @@ export function TagInput({ value, onChange, placeholder, disabled }: { value: st
         <span key={t} className="chip text-fg/90">
           {t}
           {!disabled && (
-            <button onClick={() => onChange(value.filter((x) => x !== t))} className="text-subtle hover:text-danger">
+            <button
+              type="button"
+              aria-label={`Remove ${t}`}
+              onClick={() => onChange(value.filter((x) => x !== t))}
+              className="btn-bare -mr-0.5 rounded p-0.5 text-subtle hover:text-danger-text"
+            >
               <X className="h-3 w-3" />
             </button>
           )}
@@ -709,7 +1027,7 @@ export function ScoreRing({ score, size = 44, stroke = 4 }: { score: number; siz
           strokeDashoffset={c * (1 - s / 100)}
         />
       </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-[11px] font-medium">{Math.round(s)}</span>
+      <span className="absolute inset-0 flex items-center justify-center text-micro font-medium">{Math.round(s)}</span>
     </div>
   );
 }

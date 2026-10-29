@@ -1,11 +1,12 @@
 import { lazy, Suspense, type ReactNode } from "react";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { ShieldBan } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { EventsProvider } from "@/lib/events";
 import { useSetupStatus } from "@/api/hooks";
 import { Layout } from "@/components/Layout";
 import { EmptyState, Spinner } from "@/components/ui";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const Login = lazy(() => import("@/pages/Login"));
 const Setup = lazy(() => import("@/pages/Setup"));
@@ -62,8 +63,63 @@ function Protected() {
   if (loading || !user) return <FullSpinner />;
   return (
     <EventsProvider token={token}>
-      <Layout />
+      {/* Keyed on the path so navigating away from a broken page clears the error. */}
+      <ErrorBoundary resetKey={loc.pathname}>
+        <Layout />
+      </ErrorBoundary>
     </EventsProvider>
+  );
+}
+
+/**
+ * Where "/" lands. Roles without `dashboard:read` (an approver who only has the
+ * queue, say) would otherwise hit a permission wall straight after logging in,
+ * so send them to the first page they can actually open.
+ */
+const LANDING_FALLBACKS: { path: string; perm: string }[] = [
+  { path: "/approvals", perm: "actions:read" },
+  { path: "/alerts", perm: "alerts:read" },
+  { path: "/cases", perm: "cases:read" },
+  { path: "/agents", perm: "agents:read" },
+  { path: "/runs", perm: "runs:read" },
+  { path: "/skills", perm: "skills:read" },
+  { path: "/policy", perm: "policy:read" },
+  { path: "/standards", perm: "standards:read" },
+  { path: "/audit", perm: "audit:read" },
+  { path: "/settings", perm: "settings:read" },
+  { path: "/users", perm: "users:manage" },
+  { path: "/account", perm: "" },
+];
+
+function NotFound() {
+  const navigate = useNavigate();
+  return (
+    <EmptyState
+      title="Page not found"
+      body="That route doesn't exist. It may have been renamed, or the link may be from an older version of the console."
+      action={
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <button type="button" className="btn-secondary btn-sm" onClick={() => navigate(-1)}>
+            Go back
+          </button>
+          <button type="button" className="btn-primary btn-sm" onClick={() => navigate("/")}>
+            Command center
+          </button>
+        </div>
+      }
+    />
+  );
+}
+
+function Home() {
+  const { can } = useAuth();
+  if (can("dashboard:read")) return <Dashboard />;
+  const first = LANDING_FALLBACKS.find((r) => can(r.perm || undefined));
+  if (first) return <Navigate to={first.path} replace />;
+  return (
+    <Gate perm="dashboard:read">
+      <Dashboard />
+    </Gate>
   );
 }
 
@@ -83,7 +139,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/setup" element={needsSetup ? <Setup /> : <Navigate to="/" replace />} />
         <Route element={<Protected />}>
-          <Route index element={g("dashboard:read", <Dashboard />)} />
+          <Route index element={<Home />} />
           <Route path="alerts" element={g("alerts:read", <Alerts />)} />
           <Route path="cases" element={g("cases:read", <Cases />)} />
           <Route path="cases/:id" element={g("cases:read", <CaseDetail />)} />
@@ -107,7 +163,7 @@ export default function App() {
           <Route path="roles" element={g("users:manage", <Roles />)} />
           <Route path="api-tokens" element={g("users:manage", <ApiTokens />)} />
           <Route path="account" element={<Account />} />
-          <Route path="*" element={<EmptyState title="Page not found" body="That route doesn't exist." />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </Suspense>

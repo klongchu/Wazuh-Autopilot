@@ -13,7 +13,7 @@ export function RunsTable({ runs, hideCase }: { runs: RunSummary[]; hideCase?: b
       cell: (r) => (
         <div>
           <div className="whitespace-nowrap">{r.workflow_name}</div>
-          <div className="text-[11px] text-subtle">
+          <div className="text-micro text-subtle">
             {r.mode} · {r.trigger}
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Bot, Loader2, ShieldCheck, Workflow } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -12,8 +12,11 @@ export default function Login() {
   const navigate = useNavigate();
   const loc = useLocation();
   const demo = setup.data?.demo_mode;
-  const [email, setEmail] = useState(demo ? "admin@autopilot.local" : "");
-  const [password, setPassword] = useState(demo ? "Autopilot!2026" : "");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  useEffect(() => {
+    if (demo) setEmail((v) => v || "admin@autopilot.local");
+  }, [demo]);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -82,8 +85,9 @@ export default function Login() {
           <h2 className="text-2xl font-normal tracking-tight">Sign in</h2>
           <p className="mt-1 text-sm text-muted">Use your Autopilot account.</p>
           {demo && (
-            <div className="mt-5 rounded-lg border border-info/30 bg-info/10 px-3 py-2 text-xs text-info">
-              Demo mode: <span className="font-mono">admin@autopilot.local</span> / <span className="font-mono">Autopilot!2026</span>
+            <div className="mt-5 rounded-lg border border-info/30 bg-info/10 px-3 py-2 text-xs text-info-text">
+              Demo mode. Sign in as <span className="font-mono">admin@autopilot.local</span> — the password is in the quick-start section of the
+              README.
             </div>
           )}
           <div className="mt-6 space-y-4">
@@ -91,7 +95,17 @@ export default function Login() {
               <label className="label" htmlFor="email">
                 Email
               </label>
-              <input id="email" className="input h-10" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <input
+                id="email"
+                className="input min-h-10"
+                type="email"
+                autoComplete="username"
+                aria-invalid={err ? true : undefined}
+                aria-describedby={err ? "login-error" : undefined}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
             <div>
               <label className="label" htmlFor="password">
@@ -99,7 +113,9 @@ export default function Login() {
               </label>
               <input
                 id="password"
-                className="input h-10"
+                className="input min-h-10"
+                aria-invalid={err ? true : undefined}
+                aria-describedby={err ? "login-error" : undefined}
                 type="password"
                 autoComplete="current-password"
                 value={password}
@@ -107,8 +123,12 @@ export default function Login() {
                 required
               />
             </div>
-            {err && <div className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{err}</div>}
-            <button className="btn-primary h-10 w-full" disabled={busy}>
+            {err && (
+              <div id="login-error" role="alert" className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger-text">
+                {err}
+              </div>
+            )}
+            <button type="submit" className="btn-primary min-h-10 w-full" disabled={busy}>
               {busy && <Loader2 className="h-4 w-4 animate-spin" />}
               Sign in
             </button>

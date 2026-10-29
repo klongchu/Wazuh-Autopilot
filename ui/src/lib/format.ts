@@ -1,5 +1,8 @@
+/** Placeholder for a value that is absent or not applicable. */
+export const EMPTY = "—";
+
 export function fmtNum(n: number | null | undefined, digits = 1): string {
-  if (n === null || n === undefined || Number.isNaN(n)) return "—";
+  if (n === null || n === undefined || Number.isNaN(n)) return EMPTY;
   const abs = Math.abs(n);
   if (abs >= 1e9) return `${trim((n / 1e9).toFixed(digits))}B`;
   if (abs >= 1e6) return `${trim((n / 1e6).toFixed(digits + 1))}M`;
@@ -13,19 +16,19 @@ function trim(s: string): string {
 }
 
 export function fmtPct(v: number | null | undefined, digits = 1, isRatio = false): string {
-  if (v === null || v === undefined || Number.isNaN(v)) return "—";
+  if (v === null || v === undefined || Number.isNaN(v)) return EMPTY;
   const x = isRatio ? v * 100 : v;
   return `${trim(x.toFixed(digits))}%`;
 }
 
 export function fmtUsd(v: number | null | undefined): string {
-  if (v === null || v === undefined) return "—";
+  if (v === null || v === undefined) return EMPTY;
   if (v < 0.01 && v > 0) return "<$0.01";
   return `$${v >= 100 ? fmtNum(v) : v.toFixed(2)}`;
 }
 
 export function fmtMs(ms: number | null | undefined): string {
-  if (ms === null || ms === undefined) return "—";
+  if (ms === null || ms === undefined) return EMPTY;
   if (ms < 1000) return `${Math.round(ms)}ms`;
   if (ms < 60_000) return `${trim((ms / 1000).toFixed(1))}s`;
   const m = Math.floor(ms / 60_000);
@@ -36,7 +39,7 @@ export function fmtMs(ms: number | null | undefined): string {
 export function relTime(iso: string | null | undefined): string {
   if (!iso) return "never";
   const t = new Date(iso).getTime();
-  if (Number.isNaN(t)) return "—";
+  if (Number.isNaN(t)) return EMPTY;
   const diff = (Date.now() - t) / 1000;
   const fut = diff < 0;
   const d = Math.abs(diff);
@@ -51,9 +54,9 @@ export function relTime(iso: string | null | undefined): string {
 }
 
 export function fmtDateTime(iso: string | null | undefined): string {
-  if (!iso) return "—";
+  if (!iso) return EMPTY;
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return EMPTY;
   return d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 

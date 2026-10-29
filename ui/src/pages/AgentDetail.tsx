@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTabParam } from "@/lib/useTabParam";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, Save } from "lucide-react";
 import { useAgent, useAgentPrompt, useAgents, useProviders, useSkills, useUpdateAgent } from "@/api/hooks";
@@ -20,7 +21,7 @@ export default function AgentDetail() {
   const { id = "" } = useParams();
   const q = useAgent(id);
   const { can } = useAuth();
-  const [tab, setTab] = useState<Tab>("profile");
+  const [tab, setTab] = useTabParam<Tab>(["profile", "health", "runs", "config", "prompt"], "profile");
   if (q.isLoading) return <SkeletonRows rows={10} />;
   if (q.error || !q.data) return <ErrorState error={q.error ?? "Not found"} onRetry={() => q.refetch()} />;
   const a = q.data;
@@ -120,7 +121,7 @@ function Profile({ a }: { a: AgentT }) {
           <div className="grid gap-x-6 px-5 pb-4 pt-2 md:grid-cols-2">
             {a.tools.map((t) => (
               <div key={t.name} className="flex items-center justify-between border-b border-line/60 py-2 text-sm">
-                <span className="truncate font-mono text-[12.5px]">{t.name}</span>
+                <span className="truncate font-mono text-meta">{t.name}</span>
                 <span className="flex gap-1.5">
                   <Badge tone={t.source === "mcp" ? "info" : "neutral"}>{t.source}</Badge>
                   <Badge tone={t.access === "verify" ? "success" : t.access === "platform" ? "accent" : "neutral"}>{t.access}</Badge>
@@ -273,7 +274,7 @@ function Config({ a }: { a: AgentT }) {
                 <Select value={provider} disabled={!editable} onChange={setProvider} options={plist.map((p) => ({ value: p.id, label: p.label }))} />
               </Field>
               <Field label="Model ID">
-                <input className="input font-mono text-[13px]" disabled={!editable} value={modelId} onChange={(e) => setModelId(e.target.value)} />
+                <input className="input font-mono text-caption" disabled={!editable} value={modelId} onChange={(e) => setModelId(e.target.value)} />
               </Field>
             </div>
           )}
@@ -293,7 +294,7 @@ function Config({ a }: { a: AgentT }) {
           </div>
         </Field>
         <Field label="Additional instructions" hint="Appended to the system prompt, e.g. environment-specific context.">
-          <textarea className="textarea font-mono text-[12.5px]" rows={5} disabled={!editable} value={extra} onChange={(e) => setExtra(e.target.value)} placeholder="e.g. Hosts in 10.20.0.0/16 are the PCI cardholder environment." />
+          <textarea className="textarea font-mono text-meta" rows={5} disabled={!editable} value={extra} onChange={(e) => setExtra(e.target.value)} placeholder="e.g. Hosts in 10.20.0.0/16 are the PCI cardholder environment." />
         </Field>
       </Card>
       <Card className="p-5">
@@ -322,7 +323,7 @@ function Config({ a }: { a: AgentT }) {
         {editable && (
           <div className="mt-5 flex justify-end">
             <button className="btn-primary" onClick={save} disabled={upd.isPending}>
-              {upd.isPending ? <Spinner className="text-black" /> : <Save className="h-4 w-4" />} Save changes
+              {upd.isPending ? <Spinner className="text-accent-fg" /> : <Save className="h-4 w-4" />} Save changes
             </button>
           </div>
         )}
@@ -340,7 +341,7 @@ function PromptTab({ id }: { id: string }) {
     <div className="grid gap-4 xl:grid-cols-[1fr_380px]">
       <Card>
         <CardHeader title="Composed system prompt" subtitle={`${p.system_prompt.length.toLocaleString()} characters`} />
-        <pre className="scrollbar-thin m-4 max-h-[70vh] overflow-auto whitespace-pre-wrap rounded-lg border border-line bg-deep p-4 font-mono text-[12px] leading-relaxed text-fg/85">
+        <pre className="scrollbar-thin m-4 max-h-[70vh] overflow-auto whitespace-pre-wrap rounded-lg border border-line bg-deep p-4 font-mono text-meta leading-relaxed text-fg/85">
           {p.system_prompt}
         </pre>
       </Card>
@@ -361,7 +362,7 @@ function PromptTab({ id }: { id: string }) {
             {p.tools.map((t) => (
               <div key={t.name} className="border-b border-line/60 py-2 last:border-0">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[12.5px]">{t.name}</span>
+                  <span className="font-mono text-meta">{t.name}</span>
                   <Badge tone={t.source === "mcp" ? "info" : "neutral"}>{t.source}</Badge>
                 </div>
                 <div className="mt-0.5 line-clamp-2 text-xs text-muted">{t.description}</div>

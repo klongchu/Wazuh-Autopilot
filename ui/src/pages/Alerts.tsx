@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Play, Search } from "lucide-react";
+import { Play, Search, ShieldAlert } from "lucide-react";
 import { useAlert, useAlerts, useTriageAlert } from "@/api/hooks";
 import type { Alert } from "@/api/types";
-import { Async, Card, DataTable, Drawer, JsonView, Kv, PageBody, PageHeader, Select, SeverityBadge, Spinner, StatusBadge, type Column } from "@/components/ui";
-import { fmtDateTime, relTime } from "@/lib/format";
+import { Async, Card, DataTable, Drawer, EmptyState, JsonView, Kv, PageBody, PageHeader, Select, SeverityBadge, Spinner, StatusBadge, type Column } from "@/components/ui";
+import { EMPTY, fmtDateTime, relTime } from "@/lib/format";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/lib/toast";
 import { errorMessage } from "@/api/client";
@@ -19,6 +19,12 @@ export default function Alerts() {
   const status = sp.get("status") ?? "";
   const list = useAlerts({ q: sp.get("q") ?? undefined, severity, status });
   const [openId, setOpenId] = useState<string | null>(null);
+
+  const filtered = !!(sp.get("q") || severity || status);
+  const clearFilters = () => {
+    setQ("");
+    setSp(new URLSearchParams(), { replace: true });
+  };
 
   const setParam = (k: string, v: string) => {
     const n = new URLSearchParams(sp);
@@ -36,7 +42,7 @@ export default function Alerts() {
       cell: (a) => (
         <div className="min-w-0">
           <div className="max-w-[420px] truncate">{a.rule_description}</div>
-          <div className="text-[11px] text-subtle">
+          <div className="text-micro text-subtle">
             rule {a.rule_id} · level {a.rule_level}
             {a.mitre[0] && <> · {a.mitre[0].technique_id}</>}
           </div>
@@ -45,7 +51,7 @@ export default function Alerts() {
       sort: (a) => a.rule_description,
     },
     { key: "agent", header: "Endpoint", cell: (a) => <span className="whitespace-nowrap">{a.agent_name}</span>, sort: (a) => a.agent_name },
-    { key: "src", header: "Source", cell: (a) => <span className="font-mono text-xs">{a.src_ip ?? "—"}</span> },
+    { key: "src", header: "Source", cell: (a) => <span className="font-mono text-xs">{a.src_ip ?? EMPTY}</span> },
     { key: "status", header: "Status", cell: (a) => <StatusBadge value={a.status} />, sort: (a) => a.status },
     {
       key: "case",
@@ -81,7 +87,40 @@ export default function Alerts() {
             <Select className="w-36" value={status} onChange={(v) => setParam("status", v)} options={STATUS.map((s) => ({ value: s, label: s ? s : "All statuses" }))} />
             <span className="ml-auto text-xs text-muted">{list.data ? `${list.data.total.toLocaleString()} alerts` : ""}</span>
           </div>
-          <Async q={list}>{(d) => <DataTable rows={d.items} columns={cols} rowKey={(a) => a.id} onRowClick={(a) => setOpenId(a.id)} initialSort={{ key: "ts", dir: "desc" }} />}</Async>
+          <Async q={list}>
+            {(d) => (
+              <DataTable
+                rows={d.items}
+                columns={cols}
+                rowKey={(a) => a.id}
+                onRowClick={(a) => setOpenId(a.id)}
+                rowLabel={(a) => `Open alert ${a.rule_description || a.id}`}
+                initialSort={{ key: "ts", dir: "desc" }}
+                empty={
+                  <EmptyState
+                    icon={<ShieldAlert className="h-5 w-5" />}
+                    title={filtered ? "No alerts match these filters" : "No alerts yet"}
+                    body={
+                      filtered
+                        ? "Widen the severity, status or time range to see more."
+                        : "Alerts appear here as soon as ingestion picks them up from the Wazuh MCP server."
+                    }
+                    action={
+                      filtered ? (
+                        <button type="button" className="btn-secondary btn-sm" onClick={clearFilters}>
+                          Clear filters
+                        </button>
+                      ) : (
+                        <Link to="/settings?tab=ingestion" className="btn-secondary btn-sm">
+                          Check ingestion settings
+                        </Link>
+                      )
+                    }
+                  />
+                }
+              />
+            )}
+          </Async>
         </Card>
       </PageBody>
       <AlertDrawer id={openId} onClose={() => setOpenId(null)} />
@@ -117,7 +156,7 @@ function AlertDrawer({ id, onClose }: { id: string | null; onClose: () => void }
               })
             }
           >
-            {triage.isPending ? <Spinner className="text-black" /> : <Play className="h-4 w-4" />} Run triage
+            {triage.isPending ? <Spinner className="text-accent-fg" /> : <Play className="h-4 w-4" />} Run triage
           </button>
         ) : undefined
       }

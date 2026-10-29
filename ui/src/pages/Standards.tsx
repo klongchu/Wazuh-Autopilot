@@ -18,14 +18,14 @@ export default function Standards() {
                 <button key={s.id} onClick={() => setSp({ open: s.id })} className="card p-5 text-left transition hover:border-subtle/60">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <div className="text-[15px]">{s.name}</div>
+                      <div className="text-title-sm">{s.name}</div>
                       <div className="text-xs text-muted">{s.publisher}</div>
                     </div>
                     <span className="text-2xl font-light">{Math.round(s.coverage_pct)}%</span>
                   </div>
                   <p className="mt-2 line-clamp-2 text-sm text-muted">{s.description}</p>
                   <ProgressBar value={s.coverage_pct} className="mt-4" tone={s.coverage_pct >= 70 ? "success" : "accent"} />
-                  <div className="mt-2 flex justify-between text-[11px] text-subtle">
+                  <div className="mt-2 flex justify-between text-micro text-subtle">
                     <span>{s.controls_mapped} controls mapped</span>
                     <span>
                       {s.agents.length} agents · {s.skills.length} skills

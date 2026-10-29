@@ -59,7 +59,7 @@ export function AgentCard({ a }: { a: Agent }) {
         <AgentAvatar icon={a.icon} color={a.avatar_color} running={a.status === "running"} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="truncate text-[15px]">{a.name}</span>
+            <span className="truncate text-title-sm">{a.name}</span>
           </div>
           <div className="mt-0.5 flex items-center gap-2 text-xs text-muted">
             <span className="font-medium" style={{ color: a.avatar_color }}>
@@ -87,7 +87,7 @@ export function AgentCard({ a }: { a: Agent }) {
       </div>
       <div className="mt-2 flex flex-wrap gap-1">
         {a.standards.slice(0, 3).map((s) => (
-          <span key={s.id} className="inline-flex items-center rounded-md border border-info/25 bg-info/5 px-1.5 py-0.5 text-[10.5px] text-info">
+          <span key={s.id} className="inline-flex items-center rounded-md border border-info/25 bg-info/5 px-1.5 py-0.5 text-micro text-info">
             {s.name}
           </span>
         ))}

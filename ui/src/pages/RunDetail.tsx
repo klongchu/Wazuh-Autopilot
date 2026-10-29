@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTabParam } from "@/lib/useTabParam";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, ChevronDown, ChevronRight, RotateCcw, Square } from "lucide-react";
 import { useRun, useRunOp } from "@/api/hooks";
@@ -36,7 +37,7 @@ export default function RunDetail() {
   useEffect(() => {
     if (q.data) setLive(q.data.status === "running" || q.data.status === "queued");
   }, [q.data]);
-  const [tab, setTab] = useState<Tab>("trace");
+  const [tab, setTab] = useTabParam<Tab>(["trace", "output", "input"], "trace");
 
   if (q.isLoading) return <SkeletonRows rows={10} />;
   if (q.error || !q.data) return <ErrorState error={q.error ?? "Not found"} onRetry={() => q.refetch()} />;
@@ -56,7 +57,7 @@ export default function RunDetail() {
           { k: "Errors", v: r.errors },
         ].map((s) => (
           <Card key={s.k} className="p-3">
-            <div className="text-[11px] text-muted">{s.k}</div>
+            <div className="text-micro text-muted">{s.k}</div>
             <div className={cn("mt-0.5 text-lg", s.k === "Errors" && r.errors > 0 && "text-danger")}>{s.v}</div>
           </Card>
         ))}
@@ -205,7 +206,7 @@ function Trace({ r }: { r: Run }) {
   return (
     <div className="grid gap-4 2xl:grid-cols-[1fr_420px]">
       <Card className="overflow-hidden">
-        <div className="flex items-center gap-4 border-b border-line px-4 py-2.5 text-[11px] text-muted">
+        <div className="flex items-center gap-4 border-b border-line px-4 py-2.5 text-micro text-muted">
           {(Object.keys(KIND_COLOR) as Span["kind"][]).map((k) => (
             <span key={k} className="flex items-center gap-1.5">
               <span className={cn("h-2 w-2 rounded-sm", KIND_COLOR[k])} />
@@ -223,12 +224,29 @@ function Trace({ r }: { r: Run }) {
               <div
                 key={s.id}
                 onClick={() => setSelId(s.id)}
-                className={cn("grid cursor-pointer grid-cols-[minmax(240px,38%)_1fr] items-center border-b border-line/40 text-sm hover:bg-card2/50", selId === s.id && "bg-card2")}
+                onKeyDown={(e) => {
+                  if (e.target !== e.currentTarget) return;
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setSelId(s.id);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`Trace step ${s.name}`}
+                aria-pressed={selId === s.id}
+                className={cn(
+                  "focus-ring grid cursor-pointer grid-cols-[minmax(240px,38%)_1fr] items-center border-b border-line/40 text-sm hover:bg-card2/50",
+                  selId === s.id && "bg-card2",
+                )}
               >
                 <div className="flex min-w-0 items-center gap-1.5 py-1.5 pr-2" style={{ paddingLeft: 10 + depth * 16 }}>
                   {hasChildren ? (
                     <button
-                      className="text-subtle hover:text-fg"
+                      type="button"
+                      aria-label={collapsed.has(s.id) ? `Expand ${s.name}` : `Collapse ${s.name}`}
+                      aria-expanded={!collapsed.has(s.id)}
+                      className="btn-bare -m-2 rounded p-2 text-subtle hover:text-fg"
                       onClick={(e) => {
                         e.stopPropagation();
                         setCollapsed((c) => {
@@ -244,15 +262,15 @@ function Trace({ r }: { r: Run }) {
                   ) : (
                     <span className="w-3.5" />
                   )}
-                  <span className={cn("text-[10px] uppercase", KIND_TEXT[s.kind])}>{s.kind}</span>
-                  <span className={cn("truncate font-mono text-[12px]", s.status !== "ok" && (s.status === "error" ? "text-danger" : "text-warn"))}>{s.name}</span>
+                  <span className={cn("text-micro uppercase", KIND_TEXT[s.kind])}>{s.kind}</span>
+                  <span className={cn("truncate font-mono text-meta", s.status !== "ok" && (s.status === "error" ? "text-danger-text" : "text-warn-text"))}>{s.name}</span>
                 </div>
                 <div className="relative h-7 pr-3">
                   <div
                     className={cn("absolute top-1/2 h-2.5 -translate-y-1/2 rounded-sm", KIND_COLOR[s.kind], s.status === "error" && "bg-danger", s.status === "blocked" && "bg-warn")}
                     style={{ left: `${left}%`, width: `${width}%`, opacity: 0.85 }}
                   />
-                  <span className="absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[10.5px] text-muted" style={{ left: `calc(${Math.min(left + width, 88)}% + 6px)` }}>
+                  <span className="absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-micro text-muted" style={{ left: `calc(${Math.min(left + width, 88)}% + 6px)` }}>
                     {fmtMs(s.duration_ms)}
                   </span>
                 </div>
@@ -276,7 +294,7 @@ function Trace({ r }: { r: Run }) {
               {sel.error && (
                 <div className="rounded-lg border border-danger/30 bg-danger/5 p-3">
                   <div className="text-xs text-danger">Error</div>
-                  <pre className="mt-1 whitespace-pre-wrap break-words font-mono text-[11.5px]">{sel.error}</pre>
+                  <pre className="mt-1 whitespace-pre-wrap break-words font-mono text-micro">{sel.error}</pre>
                 </div>
               )}
               {sel.input_preview && <Preview label="Input" text={sel.input_preview} />}
@@ -305,7 +323,7 @@ function Preview({ label, text }: { label: string; text: string }) {
   return (
     <div>
       <div className="label">{label}</div>
-      <pre className="scrollbar-thin max-h-[240px] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-line bg-deep p-3 font-mono text-[11.5px] text-fg/85">{pretty}</pre>
+      <pre className="scrollbar-thin max-h-[240px] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-line bg-deep p-3 font-mono text-micro text-fg/85">{pretty}</pre>
     </div>
   );
 }

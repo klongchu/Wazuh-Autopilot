@@ -46,7 +46,7 @@ export function ActionCard({ a, compact }: { a: Action; compact?: boolean }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[15px]">{a.label}</span>
+            <span className="text-title-sm">{a.label}</span>
             <span className="rounded-md border border-line bg-deep px-1.5 py-0.5 font-mono text-xs">{a.target}</span>
             <Badge tone={riskTone[a.risk] ?? "neutral"}>{a.risk} risk</Badge>
             <StatusBadge value={a.status} />

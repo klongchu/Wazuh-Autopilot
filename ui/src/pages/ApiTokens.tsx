@@ -3,7 +3,7 @@ import { Copy, KeyRound, Plus, Trash2 } from "lucide-react";
 import { useApiTokens, useCreateToken, useDeleteToken, useRoles } from "@/api/hooks";
 import type { ApiToken } from "@/api/types";
 import { errorMessage } from "@/api/client";
-import { Async, Card, ConfirmDialog, DataTable, EmptyState, Field, Modal, PageBody, PageHeader, Select, Spinner, type Column } from "@/components/ui";
+import { Async, Card, ConfirmDialog, DataTable, EmptyState, Field, Modal, NumberInput, PageBody, PageHeader, Select, Spinner, type Column } from "@/components/ui";
 import { fmtDateTime, relTime } from "@/lib/format";
 import { useToast } from "@/lib/toast";
 
@@ -80,7 +80,7 @@ export default function ApiTokens() {
                   )
                 }
               >
-                {create.isPending && <Spinner className="text-black" />} Create
+                {create.isPending && <Spinner className="text-accent-fg" />} Create
               </button>
             </>
           )
@@ -110,7 +110,7 @@ export default function ApiTokens() {
               <Select value={f.role} onChange={(v) => setF({ ...f, role: v })} options={(roles.data ?? []).map((r) => ({ value: r.id, label: r.label }))} />
             </Field>
             <Field label="Expires in (days)" hint="0 = never (not recommended)">
-              <input className="input w-32" type="number" min={0} value={f.expires_days} onChange={(e) => setF({ ...f, expires_days: Number(e.target.value) })} />
+              <NumberInput className="w-32" min={0} max={3650} value={f.expires_days} onChange={(v) => setF({ ...f, expires_days: v })} />
             </Field>
           </div>
         )}

@@ -27,7 +27,7 @@ export function ModelFields({
         return (
           <Field key={f} label={meta.label}>
             <input
-              className="input font-mono text-[13px]"
+              className="input font-mono text-caption"
               type={meta.secret ? "password" : "text"}
               disabled={disabled}
               value={raw === null || raw === undefined ? "" : String(raw)}
