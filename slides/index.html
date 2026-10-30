@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wazuh Autopilot — Agentic SOC Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans Thai"', 'sans-serif'],
+            mono: ['"Fira Code"', 'monospace'],
+          },
+          colors: {
+            bg: '#0f0d0f',
+            card: '#161416',
+            cardBorder: '#292529',
+            accent: '#ff8127',
+            accentHover: '#ff9447',
+            muted: '#8e868d',
+            subtle: '#655e64',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #0f0d0f;
+      color: #ecebec;
+      overflow: hidden;
+      user-select: none;
+    }
+    .slide {
+      display: none;
+      height: 100vh;
+      width: 100vw;
+      padding: 3rem 5rem;
+      box-sizing: border-box;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+    }
+    .slide.active {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      opacity: 1;
+    }
+    .glass-card {
+      background: rgba(22, 20, 22, 0.85);
+      border: 1px solid #292529;
+      border-radius: 1rem;
+      backdrop-filter: blur(12px);
+    }
+    .glow-orange {
+      box-shadow: 0 0 35px -5px rgba(255, 129, 39, 0.25);
+    }
+    .tag {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      background: rgba(255, 129, 39, 0.12);
+      border: 1px solid rgba(255, 129, 39, 0.3);
+      color: #ff8127;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body class="relative font-sans antialiased">
+
+  <!-- Background Ambient Glow -->
+  <div class="fixed top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-accent/10 blur-[130px] pointer-events-none"></div>
+  <div class="fixed bottom-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-blue-600/5 blur-[150px] pointer-events-none"></div>
+
+  <!-- SLIDE 1: Title -->
+  <div class="slide active" id="slide-1">
+    <div class="max-w-5xl mx-auto text-center space-y-6">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-accent/40 bg-accent/10 text-accent font-medium text-sm">
+        <span class="inline-block w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+        Agentic SOC Platform powered by Strands Agents & Wazuh
+      </div>
+      <h1 class="text-6xl font-bold tracking-tight text-white leading-tight">
+        Wazuh <span class="text-accent underline decoration-accent/40">Autopilot</span>
+      </h1>
+      <p class="text-2xl text-gray-300 font-light max-w-3xl mx-auto">
+        ยกระดับศูนย์เฝ้าระวังความมั่นคงปลอดภัย (SOC) สู่ระบบอัตโนมัติด้วยฝูง 13 AI Agents ทำงานร่วมกับ Wazuh SIEM
+      </p>
+      <div class="pt-8 flex justify-center gap-6">
+        <div class="glass-card px-6 py-4 text-left">
+          <div class="text-accent font-bold text-2xl">13 Agents</div>
+          <div class="text-muted text-sm">ผู้เชี่ยวชาญไซเบอร์เฉพาะด้าน</div>
+        </div>
+        <div class="glass-card px-6 py-4 text-left">
+          <div class="text-accent font-bold text-2xl">37 Skills</div>
+          <div class="text-muted text-sm">Playbooks อิงมาตรฐานสากล</div>
+        </div>
+        <div class="glass-card px-6 py-4 text-left">
+          <div class="text-accent font-bold text-2xl">55+ Tools</div>
+          <div class="text-muted text-sm">เชื่อมต่อผ่าน Wazuh MCP Server</div>
+        </div>
+        <div class="glass-card px-6 py-4 text-left">
+          <div class="text-accent font-bold text-2xl">Human Gate</div>
+          <div class="text-muted text-sm">ปลอดภัยด้วยการควบคุมสิทธิ์ 100%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: Problem & Vision -->
+  <div class="slide" id="slide-2">
+    <div class="max-w-6xl mx-auto space-y-6 w-full">
+      <div class="text-accent text-sm font-semibold tracking-wider uppercase">Problem & Vision</div>
+      <h2 class="text-4xl font-bold text-white">ความท้าทายของ SOC แบบดั้งเดิม VS ทางออกด้วย AI Swarm</h2>
+      
+      <div class="grid grid-cols-2 gap-8 pt-4">
+        <!-- Problems -->
+        <div class="glass-card p-6 border-red-500/20 bg-red-950/10 space-y-4">
+          <div class="flex items-center gap-2 text-red-400 font-semibold text-lg">
+            <span>❌</span> ความท้าทายของศูนย์ SOC ยุคปัจจุบัน
+          </div>
+          <ul class="space-y-3 text-gray-300 text-sm">
+            <li class="flex items-start gap-2">
+              <span class="text-red-400 font-bold">•</span>
+              <span><strong>Alert Fatigue:</strong> การแจ้งเตือนนับหมื่นรายการต่อวัน ส่วนใหญ่เป็น False Positive หรือ Noise เครือข่าย</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-red-400 font-bold">•</span>
+              <span><strong>เวลาตอบสนองช้า (High MTTD/MTTR):</strong> นักวิเคราะห์ต้องสลับหลายหน้าจอเพื่อสืบค้นข้อมูลและปะติดปะต่อเหตุการณ์</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-red-400 font-bold">•</span>
+              <span><strong>ขาดแคลนผู้เชี่ยวชาญ Tier 2 / Tier 3:</strong> การทำ DFIR เชิงลึกและ Threat Hunting ต้องใช้บุคลากรเฉพาะทางสูง</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Vision -->
+        <div class="glass-card p-6 border-accent/30 bg-accent/5 space-y-4 glow-orange">
+          <div class="flex items-center gap-2 text-accent font-semibold text-lg">
+            <span>⚡</span> วิสัยทัศน์ของ Wazuh Autopilot
+          </div>
+          <ul class="space-y-3 text-gray-300 text-sm">
+            <li class="flex items-start gap-2">
+              <span class="text-accent font-bold">•</span>
+              <span><strong>Deterministic Grouping:</strong> รวม Alert ที่เกี่ยวข้องกันให้อยู่ในเคสเดียว ลดภาระงานวิเคราะห์ลงกว่า 90%</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-accent font-bold">•</span>
+              <span><strong>AI Specialist Handoffs:</strong> เอเจนต์ส่งต่องานอัตโนมัติตามสายความเชี่ยวชาญ (Triage &rarr; Correlation &rarr; DFIR)</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-accent font-bold">•</span>
+              <span><strong>Safe Automation:</strong> ปฏิบัติการตอบสนองอย่างมั่นใจภายใต้กรอบนโยบายและการอนุมัติของมนุษย์ (Human-in-the-Loop)</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: Architecture -->
+  <div class="slide" id="slide-3">
+    <div class="max-w-6xl mx-auto space-y-6 w-full">
+      <div class="text-accent text-sm font-semibold tracking-wider uppercase">System Architecture</div>
+      <h2 class="text-4xl font-bold text-white">สถาปัตยกรรมการทำงานของระบบ (End-to-End Flow)</h2>
+      
+      <div class="grid grid-cols-4 gap-4 pt-4">
+        <!-- Step 1 -->
+        <div class="glass-card p-5 space-y-3">
+          <div class="w-8 h-8 rounded-lg bg-accent/20 text-accent font-bold flex items-center justify-center text-sm">1</div>
+          <h3 class="font-bold text-white text-base">Alert Ingestion</h3>
+          <p class="text-xs text-muted leading-relaxed">
+            รับข้อมูล Alert จาก Wazuh Manager ผ่าน <strong>Wazuh MCP Server</strong> (Polling ทุก 30 วิ หรือ Webhook) กรองเฉพาะ Alert ความปลอดภัยจริง (Level 5+)
+          </p>
+          <div class="tag">Normalization</div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="glass-card p-5 space-y-3">
+          <div class="w-8 h-8 rounded-lg bg-accent/20 text-accent font-bold flex items-center justify-center text-sm">2</div>
+          <h3 class="font-bold text-white text-base">Case Grouping</h3>
+          <p class="text-xs text-muted leading-relaxed">
+            รวมเหตุการณ์ที่เกิดจาก IP, Hostname หรือ Rule เดียวกันในหน้าต่างเวลาที่กำหนดให้เป็น <strong>Incident Case เดียวกัน</strong> พร้อมดึงข้อมูล MITRE ATT&CK
+          </p>
+          <div class="tag">Deduplication</div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="glass-card p-5 space-y-3">
+          <div class="w-8 h-8 rounded-lg bg-accent/20 text-accent font-bold flex items-center justify-center text-sm">3</div>
+          <h3 class="font-bold text-white text-base">13-Agent Swarm</h3>
+          <p class="text-xs text-muted leading-relaxed">
+            AI Agents ระดมวิเคราะห์: SOC Commander ส่งงานให้ Triage คัดกรอง, Weaver สหสัมพันธ์ข้ามโฮสต์ และ Sleuth เจาะลึกทางนิติวิทยาศาสตร์
+          </p>
+          <div class="tag">AI Collaboration</div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="glass-card p-5 space-y-3">
+          <div class="w-8 h-8 rounded-lg bg-accent/20 text-accent font-bold flex items-center justify-center text-sm">4</div>
+          <h3 class="font-bold text-white text-base">Policy & Response</h3>
+          <p class="text-xs text-muted leading-relaxed">
+            AI เสนอ Action (`propose_action`) เข้าคิว <strong>Approvals</strong> ให้มนุษย์อนุมัติ ก่อนส่งคำสั่ง Active Response หรือ Isolate Host ไปยัง Wazuh
+          </p>
+          <div class="tag">Approval Gate</div>
+        </div>
+      </div>
+
+      <div class="glass-card p-4 text-center text-xs text-gray-300 font-mono">
+        <span class="text-accent font-bold">[Wazuh SIEM]</span> ──(MCP Server)──► <span class="text-white font-bold">[Autopilot Swarm Engine]</span> ──(Policy Engine)──► <span class="text-green-400 font-bold">[Verified Execution & Rollback]</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: 13 Specialist Agents -->
+  <div class="slide" id="slide-4">
+    <div class="max-w-6xl mx-auto space-y-6 w-full">
+      <div class="text-accent text-sm font-semibold tracking-wider uppercase">AI Workforce</div>
+      <h2 class="text-4xl font-bold text-white">ฝูง 13 AI Agents ผู้เชี่ยวชาญเฉพาะด้าน (Agent Roster)</h2>
+      
+      <div class="grid grid-cols-3 gap-4 text-xs">
+        <div class="glass-card p-4 space-y-1.5 border-l-4 border-accent">
+          <div class="flex justify-between items-center"><span class="font-bold text-white text-sm">Overwatch</span><span class="tag">LEAD</span></div>
+          <div class="text-muted font-medium">SOC Commander</div>
+          <p class="text-gray-400">ผู้บัญชาการเวร ประเมินภาพรวมและกระจายงานให้ผู้เชี่ยวชาญ</p>
+        </div>
+
+        <div class="glass-card p-4 space-y-1.5 border-l-4 border-blue-500">
+          <div class="flex justify-between items-center"><span class="font-bold text-white text-sm">Sentinel</span><span class="tag">Tier 1</span></div>
+          <div class="text-muted font-medium">Triage Analyst</div>
+          <p class="text-gray-400">คัดกรองสัญญาณรบกวน ตรวจสอบ Alert เบื้องต้น และประเมินความรุนแรง</p>
+        </div>
+
+        <div class="glass-card p-4 space-y-1.5 border-l-4 border-amber-500">
+          <div class="flex justify-between items-center"><span class="font-bold text-white text-sm">Weaver</span><span class="tag">Tier 2</span></div>
+          <div class="text-muted font-medium">Correlation Analyst</div>
+          <p class="text-gray-400">สหสัมพันธ์ Alert ข้ามเวลาและโฮสต์ สร้าง Incident Timeline</p>
+        </div>
+
+        <div class="glass-card p-4 space-y-1.5 border-l-4 border-purple-500">
+          <div class="flex justify-between items-center"><span class="font-bold text-white text-sm">Sleuth</span><span class="tag">Tier 3</span></div>
+          <div class="text-muted font-medium">DFIR Investigator</div>
+          <p class="text-gray-400">นิติวิทยาศาสตร์ระดับโฮสต์ ตรวจสอบ Process, Port และ Persistence</p>
+        </div>
+
+        <div class="glass-card p-4 space-y-1.5 border-l-4 border-cyan-500">
+          <div class="flex justify-between items-center"><span class="font-bold text-white text-sm">Oracle</span><span class="tag">Intel</span></div>
+          <div class="text-muted font-medium">CTI Analyst</div>
+          <p class="text-gray-400">สืบค้นข่าวกรอง IoC, จัดเกรดความน่าเชื่อถือ และเทียบเคียง Threat Actor</p>
+        </div>
+
+        <div class="glass-card p-4 space-y-1.5 border-l-4 border-emerald-500">
+          <div class="flex justify-between items-center"><span class="font-bold text-white text-sm">Strategist</span><span class="tag">Response</span></div>
+          <div class="text-muted font-medium">Incident Response Lead</div>
+          <p class="text-gray-400">วางแผนกลยุทธ์รับมือเหตุฉุกเฉิน (Containment & Remediation)</p>
+        </div>
+      </div>
+      <div class="text-center text-xs text-muted">
+        พร้อมด้วย <strong>Tracker</strong> (Threat Hunter), <strong>Patchwork</strong> (Vulnerability), <strong>Enforcer</strong> (SecOps), <strong>Forge</strong> (Detection Engineer), <strong>Auditor</strong> (GRC), <strong>Keeper</strong> (Platform) และ <strong>Chronicle</strong> (SOC Manager)
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: Safety & Governance -->
+  <div class="slide" id="slide-5">
+    <div class="max-w-6xl mx-auto space-y-6 w-full">
+      <div class="text-accent text-sm font-semibold tracking-wider uppercase">Governance & Trust</div>
+      <h2 class="text-4xl font-bold text-white">ระบบควบคุมความปลอดภัยขั้นสูงสุด (Safe-by-Construction)</h2>
+      
+      <div class="grid grid-cols-3 gap-6 pt-2">
+        <div class="glass-card p-6 space-y-3">
+          <div class="text-accent text-2xl">🛡️</div>
+          <h3 class="font-bold text-white text-lg">Read-Only by Default</h3>
+          <p class="text-sm text-gray-300 leading-relaxed">
+            AI Agents ไม่มีสิทธิ์สั่งแก้ไขระบบ Wazuh หรือสั่งการใดๆ โดยตรง ทำได้เพียงเรียกคำสั่ง <code>propose_action</code> เพื่อส่งข้อเสนอแนะเท่านั้น
+          </p>
+        </div>
+
+        <div class="glass-card p-6 space-y-3">
+          <div class="text-accent text-2xl">🚦</div>
+          <h3 class="font-bold text-white text-lg">Autonomy Policy 4 ระดับ</h3>
+          <ul class="text-xs text-gray-300 space-y-1.5">
+            <li><strong>Observe:</strong> แสดงคำแนะนำเท่านั้น</li>
+            <li><strong>Recommend:</strong> มนุษย์กดรันคำสั่งเอง</li>
+            <li><strong>Supervised:</strong> มนุษย์กดอนุมัติ ระบบรันให้</li>
+            <li><strong>Autonomous:</strong> รันอัตโนมัติเฉพาะเคสความเสี่ยงต่ำ</li>
+          </ul>
+        </div>
+
+        <div class="glass-card p-6 space-y-3">
+          <div class="text-accent text-2xl">🎯</div>
+          <h3 class="font-bold text-white text-lg">Protected Targets & Audit</h3>
+          <p class="text-sm text-gray-300 leading-relaxed">
+            กำหนด Blacklist ป้องกันเซิร์ฟเวอร์หลัก (DC, DB, Wazuh Manager) จากการถูกสั่งระงับ 100% พร้อมบันทึก Immutable Audit Log และปุ่ม Rollback
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: Standards & Playbooks -->
+  <div class="slide" id="slide-6">
+    <div class="max-w-6xl mx-auto space-y-6 w-full">
+      <div class="text-accent text-sm font-semibold tracking-wider uppercase">Compliance & Standards</div>
+      <h2 class="text-4xl font-bold text-white">ยึดมั่นตามมาตรฐานสากลและ Playbooks มืออาชีพ</h2>
+      
+      <div class="grid grid-cols-2 gap-8 pt-4">
+        <div class="glass-card p-6 space-y-4">
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>📚</span> มาตรฐานระดับโลกที่รองรับ
+          </h3>
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div class="p-3 rounded-lg bg-card border border-cardBorder">
+              <strong class="text-accent block">NIST CSF 2.0 & SP 800-61r3</strong>
+              กรอบการจัดการเหตุการณ์ฉุกเฉิน
+            </div>
+            <div class="p-3 rounded-lg bg-card border border-cardBorder">
+              <strong class="text-accent block">MITRE ATT&CK & D3FEND</strong>
+              การระบุ TTPs และเทคนิคการป้องกัน
+            </div>
+            <div class="p-3 rounded-lg bg-card border border-cardBorder">
+              <strong class="text-accent block">CIS Controls v8.1</strong>
+              มาตรการควบคุมความปลอดภัยพื้นฐาน
+            </div>
+            <div class="p-3 rounded-lg bg-card border border-cardBorder">
+              <strong class="text-accent block">ISO 27001 & PCI-DSS 4.0</strong>
+              การปฏิบัติตามกฎเกณฑ์และการกำกับดูแล
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card p-6 space-y-4">
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>⚙️</span> 37 Agent Skills & Playbooks
+          </h3>
+          <div class="space-y-2 text-xs text-gray-300">
+            <div class="p-2.5 rounded bg-card/60 border border-cardBorder">
+              <strong>Playbooks พร้อมใช้:</strong> Brute Force, Ransomware, Suspicious PowerShell, Lateral Movement, Privilege Escalation
+            </div>
+            <div class="p-2.5 rounded bg-card/60 border border-cardBorder">
+              <strong>ทักษะเฉพาะ Wazuh:</strong> FIM (ตรวจไฟล์ถูกแก้), SCA (ตรวจคอนฟิก), Sysmon Analytics, Active Response
+            </div>
+            <div class="p-2.5 rounded bg-card/60 border border-cardBorder">
+              <strong>ภาษาไทยเต็มรูปแบบ:</strong> AI เขียนสรุป Incident Summary, Findings และไทม์ไลน์เป็นภาษาไทยทั้งหมด
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: Live Environment -->
+  <div class="slide" id="slide-7">
+    <div class="max-w-6xl mx-auto space-y-6 w-full">
+      <div class="text-accent text-sm font-semibold tracking-wider uppercase">Live Production Proof</div>
+      <h2 class="text-4xl font-bold text-white">ความพร้อมใช้งานจริงในระบบ (Production Ready)</h2>
+      
+      <div class="grid grid-cols-3 gap-6 pt-2">
+        <div class="glass-card p-6 text-center space-y-2">
+          <div class="text-muted text-xs uppercase tracking-wider">Wazuh Server Integration</div>
+          <div class="text-3xl font-bold text-white">172.16.220.85</div>
+          <div class="text-xs text-green-400">● เชื่อมต่อ Wazuh MCP สำเร็จ</div>
+        </div>
+
+        <div class="glass-card p-6 text-center space-y-2">
+          <div class="text-muted text-xs uppercase tracking-wider">Processed Alerts</div>
+          <div class="text-3xl font-bold text-accent">8,800+ รายการ</div>
+          <div class="text-xs text-muted">กรอง Alert คุณภาพ Level 5+</div>
+        </div>
+
+        <div class="glass-card p-6 text-center space-y-2">
+          <div class="text-muted text-xs uppercase tracking-wider">System Localization</div>
+          <div class="text-3xl font-bold text-white">Asia/Bangkok</div>
+          <div class="text-xs text-green-400">ฟอนต์ Noto Sans Thai ทั้งระบบ</div>
+        </div>
+      </div>
+
+      <div class="glass-card p-6 space-y-3">
+        <h3 class="font-bold text-white text-base">คุณสมบัติการ Deploy</h3>
+        <div class="grid grid-cols-3 gap-4 text-xs text-gray-300">
+          <div>✓ Self-hosted 100% บน Docker</div>
+          <div>✓ รองรับ LLM หลากหลาย (OpenAI, Claude, Ollama)</div>
+          <div>✓ Air-gap Ready ไม่ต้องต่อเน็ตภายนอก</div>
+          <div>✓ Web Console ทันสมัยพร้อม Command Palette</div>
+          <div>✓ ระบบ Telemetry & Traces ครบทุกการตัดสินใจ</div>
+          <div>✓ กฎควบคุม Role-Based Access Control (RBAC)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: Summary & CTA -->
+  <div class="slide" id="slide-8">
+    <div class="max-w-4xl mx-auto text-center space-y-8">
+      <div class="tag mx-auto">Conclusion</div>
+      <h2 class="text-5xl font-bold text-white leading-tight">
+        พลิกโฉมการทำงานของ SOC สู่ความแม่นยำ รวดเร็ว และปลอดภัยสูงสุด
+      </h2>
+      <p class="text-xl text-gray-300 font-light max-w-2xl mx-auto">
+        เปลี่ยนจากการไล่ตอบสนอง Alert รายตัว สู่การบริหารจัดการเหตุการณ์อย่างมีแบบแผนด้วย <strong>Wazuh Autopilot</strong>
+      </p>
+
+      <div class="pt-6 flex justify-center gap-4">
+        <a href="http://localhost:8480" target="_blank" class="px-8 py-3.5 rounded-lg bg-accent text-black font-semibold text-base hover:bg-accentHover transition shadow-lg shadow-accent/25">
+          เข้าสู่ระบบ Web Console (พอร์ต 8480)
+        </a>
+      </div>
+
+      <div class="pt-8 text-xs text-subtle font-mono">
+        Wazuh Autopilot v3.0.0 · Strands Agents Edition · MIT Licensed
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide Navigation Bar -->
+  <div class="fixed bottom-6 left-1/2 -translate-x-1/2 glass-card px-6 py-2.5 flex items-center gap-6 z-50">
+    <button id="prevBtn" class="text-sm font-semibold text-muted hover:text-white transition flex items-center gap-1">
+      &larr; ก่อนหน้า
+    </button>
+    <div class="text-xs font-mono text-accent" id="slideIndicator">1 / 8</div>
+    <button id="nextBtn" class="text-sm font-semibold text-muted hover:text-white transition flex items-center gap-1">
+      ถัดไป &rarr;
+    </button>
+  </div>
+
+  <!-- Keyboard Hint -->
+  <div class="fixed bottom-6 right-6 text-subtle text-xs font-mono">
+    กดลูกศร &larr; / &rarr; หรือ Spacebar เพื่อเลื่อนสไลด์
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 8;
+
+    function showSlide(n) {
+      document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+      const active = document.getElementById(`slide-${n}`);
+      if (active) active.classList.add('active');
+      document.getElementById('slideIndicator').innerText = `${n} / ${totalSlides}`;
+      document.getElementById('prevBtn').disabled = n === 1;
+      document.getElementById('nextBtn').disabled = n === totalSlides;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        currentSlide++;
+        showSlide(currentSlide);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        currentSlide--;
+        showSlide(currentSlide);
+      }
+    }
+
+    document.getElementById('nextBtn').addEventListener('click', nextSlide);
+    document.getElementById('prevBtn').addEventListener('click', prevSlide);
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        prevSlide();
+      } else if (e.key >= '1' && e.key <= '8') {
+        currentSlide = parseInt(e.key);
+        showSlide(currentSlide);
+      }
+    });
+
+    showSlide(currentSlide);
+  </script>
+</body>
+</html>
