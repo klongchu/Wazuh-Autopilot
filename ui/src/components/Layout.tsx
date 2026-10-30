@@ -1,6 +1,26 @@
-import { Suspense, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Bell, ChevronDown, Command, LogOut, Menu, Moon, Search, Settings, Sun, User as UserIcon, X } from "lucide-react";
+import {
+  Bell,
+  ChevronDown,
+  Command,
+  LogOut,
+  Menu,
+  Moon,
+  Search,
+  Settings,
+  Sun,
+  User as UserIcon,
+  X,
+} from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { useEvents } from "@/lib/events";
@@ -14,16 +34,30 @@ export function Logo({ compact }: { compact?: boolean }) {
   return (
     <div className="flex items-center gap-2.5">
       <svg viewBox="0 0 32 32" className="h-7 w-7 shrink-0">
-        <path d="M8 9 L16 22 L24 9" stroke="rgb(var(--accent))" strokeWidth="2.2" fill="none" strokeLinecap="round" />
-        <path d="M8 9 L24 9" stroke="rgb(var(--accent) / .35)" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+        <path
+          d="M8 9 L16 22 L24 9"
+          stroke="rgb(var(--accent))"
+          strokeWidth="2.2"
+          fill="none"
+          strokeLinecap="round"
+        />
+        <path
+          d="M8 9 L24 9"
+          stroke="rgb(var(--accent) / .35)"
+          strokeWidth="1.6"
+          fill="none"
+          strokeLinecap="round"
+        />
         <circle cx="8" cy="9" r="3.4" fill="rgb(var(--accent))" />
         <circle cx="24" cy="9" r="3.4" fill="rgb(var(--info))" />
         <circle cx="16" cy="22" r="3.8" fill="rgb(var(--accent))" />
       </svg>
       {!compact && (
         <div className="leading-tight">
-          <div className="text-base font-medium tracking-tight">Autopilot</div>
-          <div className="text-micro text-subtle">Agentic SOC · Strands</div>
+          <div className="text-base font-medium tracking-tight">
+            ฺSwarm Autopilot
+          </div>
+          <div className="text-micro text-subtle">Agentic SOC · BDUHOSP</div>
         </div>
       )}
     </div>
@@ -66,7 +100,14 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                   >
                     {({ isActive }) => (
                       <>
-                        <item.icon className={cn("h-[16px] w-[16px] shrink-0", isActive ? "text-accent" : "text-subtle group-hover:text-muted")} />
+                        <item.icon
+                          className={cn(
+                            "h-[16px] w-[16px] shrink-0",
+                            isActive
+                              ? "text-accent"
+                              : "text-subtle group-hover:text-muted",
+                          )}
+                        />
                         <span className="flex-1 truncate">{item.label}</span>
                         {item.badgeKey === "approvals" && pendingCount > 0 && (
                           <span className="rounded-md border border-accent/30 bg-accent/15 px-1.5 text-micro font-medium text-accent-text">
@@ -88,7 +129,12 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             type="button"
             aria-pressed={theme === "light"}
             onClick={() => setTheme("light")}
-            className={cn("btn-bare flex items-center justify-center gap-2 rounded-lg py-2 text-sm", theme === "light" ? "bg-card2 text-fg ring-1 ring-line" : "text-muted hover:text-fg")}
+            className={cn(
+              "btn-bare flex items-center justify-center gap-2 rounded-lg py-2 text-sm",
+              theme === "light"
+                ? "bg-card2 text-fg ring-1 ring-line"
+                : "text-muted hover:text-fg",
+            )}
           >
             <Sun className="h-4 w-4" /> Light
           </button>
@@ -96,7 +142,12 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             type="button"
             aria-pressed={theme === "dark"}
             onClick={() => setTheme("dark")}
-            className={cn("btn-bare flex items-center justify-center gap-2 rounded-lg py-2 text-sm", theme === "dark" ? "bg-card2 text-fg ring-1 ring-line" : "text-muted hover:text-fg")}
+            className={cn(
+              "btn-bare flex items-center justify-center gap-2 rounded-lg py-2 text-sm",
+              theme === "dark"
+                ? "bg-card2 text-fg ring-1 ring-line"
+                : "text-muted hover:text-fg",
+            )}
           >
             <Moon className="h-4 w-4" /> Dark
           </button>
@@ -106,7 +157,13 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
+function CommandPalette({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
   const { can } = useAuth();
   const navigate = useNavigate();
   const [q, setQ] = useState("");
@@ -115,16 +172,45 @@ function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void 
   const dialogRef = useDialog<HTMLDivElement>(open, onClose);
   const listId = useId();
   const items = useMemo(() => {
-    const all = NAV.flatMap((s) => s.items.filter((i) => can(i.perm)).map((i) => ({ ...i, section: s.section })));
+    const all = NAV.flatMap((s) =>
+      s.items
+        .filter((i) => can(i.perm))
+        .map((i) => ({ ...i, section: s.section })),
+    );
     const needle = q.trim().toLowerCase();
-    const found = needle ? all.filter((i) => `${i.label} ${i.section}`.toLowerCase().includes(needle)) : all;
+    const found = needle
+      ? all.filter((i) =>
+          `${i.label} ${i.section}`.toLowerCase().includes(needle),
+        )
+      : all;
     const extra: { to: string; label: string; section: string }[] = [];
-    if (/^inc-\d+/i.test(needle) || /^case/i.test(needle)) extra.push({ to: `/cases?q=${encodeURIComponent(q.trim())}`, label: `Search incidents for “${q.trim()}”`, section: "Search" });
+    if (/^inc-\d+/i.test(needle) || /^case/i.test(needle))
+      extra.push({
+        to: `/cases?q=${encodeURIComponent(q.trim())}`,
+        label: `Search incidents for “${q.trim()}”`,
+        section: "Search",
+      });
     else if (needle.length > 1) {
-      extra.push({ to: `/alerts?q=${encodeURIComponent(q.trim())}`, label: `Search alerts for “${q.trim()}”`, section: "Search" });
-      extra.push({ to: `/cases?q=${encodeURIComponent(q.trim())}`, label: `Search incidents for “${q.trim()}”`, section: "Search" });
+      extra.push({
+        to: `/alerts?q=${encodeURIComponent(q.trim())}`,
+        label: `Search alerts for “${q.trim()}”`,
+        section: "Search",
+      });
+      extra.push({
+        to: `/cases?q=${encodeURIComponent(q.trim())}`,
+        label: `Search incidents for “${q.trim()}”`,
+        section: "Search",
+      });
     }
-    return [...found.map((f) => ({ to: f.to, label: f.label, section: f.section, icon: f.icon })), ...extra.map((e) => ({ ...e, icon: Search }))];
+    return [
+      ...found.map((f) => ({
+        to: f.to,
+        label: f.label,
+        section: f.section,
+        icon: f.icon,
+      })),
+      ...extra.map((e) => ({ ...e, icon: Search })),
+    ];
   }, [q, can]);
 
   useEffect(() => {
@@ -142,7 +228,10 @@ function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void 
   };
   return (
     <div className="fixed inset-0 z-[90] flex items-start justify-center p-4 pt-[12vh]">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
       <div
         ref={dialogRef}
         role="dialog"
@@ -178,9 +267,15 @@ function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void 
           />
           <span className="kbd">ESC</span>
         </div>
-        <div id={listId} role="listbox" className="scrollbar-thin max-h-[50vh] overflow-y-auto p-1.5">
+        <div
+          id={listId}
+          role="listbox"
+          className="scrollbar-thin max-h-[50vh] overflow-y-auto p-1.5"
+        >
           {items.length === 0 && (
-            <div className="px-3 py-6 text-center text-sm text-muted">No matches for “{q}”. Try a page name, an alert ID or a host.</div>
+            <div className="px-3 py-6 text-center text-sm text-muted">
+              No matches for “{q}”. Try a page name, an alert ID or a host.
+            </div>
           )}
           {items.map((it, i) => (
             <button
@@ -192,9 +287,17 @@ function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void 
               tabIndex={-1}
               onMouseEnter={() => setIdx(i)}
               onClick={() => go(it.to)}
-              className={cn("flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm", i === idx ? "bg-card2 text-fg" : "text-muted")}
+              className={cn(
+                "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm",
+                i === idx ? "bg-card2 text-fg" : "text-muted",
+              )}
             >
-              <it.icon className={cn("h-4 w-4", i === idx ? "text-accent" : "text-subtle")} />
+              <it.icon
+                className={cn(
+                  "h-4 w-4",
+                  i === idx ? "text-accent" : "text-subtle",
+                )}
+              />
               <span className="flex-1">{it.label}</span>
               <span className="text-micro text-subtle">{it.section}</span>
             </button>
@@ -210,12 +313,22 @@ function Notifications() {
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(0);
   useEsc(open, () => setOpen(false));
-  const important = events.filter((e) => ["case.created", "action.created", "action.updated", "run.finished"].includes(e.type)).slice(0, 25);
+  const important = events
+    .filter((e) =>
+      [
+        "case.created",
+        "action.created",
+        "action.updated",
+        "run.finished",
+      ].includes(e.type),
+    )
+    .slice(0, 25);
   const unread = important.filter((e) => e.at > seen).length;
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
-    const h = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setOpen(false);
+    const h = (e: MouseEvent) =>
+      ref.current && !ref.current.contains(e.target as Node) && setOpen(false);
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
   }, [open]);
@@ -233,17 +346,30 @@ function Notifications() {
         }}
       >
         <Bell className="h-4 w-4" />
-        {unread > 0 && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-accent ring-2 ring-card" />}
+        {unread > 0 && (
+          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-accent ring-2 ring-card" />
+        )}
       </button>
       {open && (
         <div className="card absolute right-0 top-11 z-50 w-[340px] bg-card shadow-2xl">
-          <div className="border-b border-line px-4 py-2.5 text-sm">Notifications</div>
+          <div className="border-b border-line px-4 py-2.5 text-sm">
+            Notifications
+          </div>
           <div className="scrollbar-thin max-h-[360px] overflow-y-auto">
-            {important.length === 0 && <div className="px-4 py-8 text-center text-sm text-muted">You're all caught up.</div>}
+            {important.length === 0 && (
+              <div className="px-4 py-8 text-center text-sm text-muted">
+                You're all caught up.
+              </div>
+            )}
             {important.map((e, i) => (
-              <div key={i} className="border-b border-line/60 px-4 py-2.5 last:border-0">
+              <div
+                key={i}
+                className="border-b border-line/60 px-4 py-2.5 last:border-0"
+              >
                 <div className="text-sm">{describeEvent(e.type, e.data)}</div>
-                <div className="mt-0.5 text-micro text-subtle">{relTime(new Date(e.at).toISOString())}</div>
+                <div className="mt-0.5 text-micro text-subtle">
+                  {relTime(new Date(e.at).toISOString())}
+                </div>
               </div>
             ))}
           </div>
@@ -253,8 +379,12 @@ function Notifications() {
   );
 }
 
-export function describeEvent(type: string, d: Record<string, unknown>): string {
-  const s = (k: string) => (typeof d[k] === "string" || typeof d[k] === "number" ? String(d[k]) : "");
+export function describeEvent(
+  type: string,
+  d: Record<string, unknown>,
+): string {
+  const s = (k: string) =>
+    typeof d[k] === "string" || typeof d[k] === "number" ? String(d[k]) : "";
   switch (type) {
     case "case.created":
       return `New incident ${s("number")} ${s("title")}`.trim();
@@ -287,7 +417,8 @@ function UserMenu() {
   useEsc(open, () => setOpen(false));
   useEffect(() => {
     if (!open) return;
-    const h = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setOpen(false);
+    const h = (e: MouseEvent) =>
+      ref.current && !ref.current.contains(e.target as Node) && setOpen(false);
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
   }, [open]);
@@ -315,7 +446,9 @@ function UserMenu() {
           <div className="px-2.5 py-2">
             <div className="text-sm">{user.name}</div>
             <div className="text-xs text-muted">{user.email}</div>
-            <div className="mt-1.5 inline-flex rounded-md border border-accent/30 bg-accent/10 px-1.5 py-0.5 text-micro text-accent-text">{user.role_label}</div>
+            <div className="mt-1.5 inline-flex rounded-md border border-accent/30 bg-accent/10 px-1.5 py-0.5 text-micro text-accent-text">
+              {user.role_label}
+            </div>
           </div>
           <div className="my-1 border-t border-line" />
           <button
@@ -380,7 +513,10 @@ export function Layout() {
       {/* Mobile drawer */}
       {mobile && (
         <div className="fixed inset-0 z-[60] lg:hidden">
-          <div className="absolute inset-0 animate-fadeIn bg-black/60 motion-reduce:animate-none" onClick={() => setMobile(false)} />
+          <div
+            className="absolute inset-0 animate-fadeIn bg-black/60 motion-reduce:animate-none"
+            onClick={() => setMobile(false)}
+          />
           <aside
             ref={mobileRef}
             role="dialog"
@@ -404,7 +540,13 @@ export function Layout() {
 
       <div className="flex min-w-0 flex-1 flex-col bg-bg">
         <header className="flex min-h-[60px] shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-line px-3 py-2 md:px-5">
-          <button type="button" className="icon-btn lg:hidden" onClick={() => setMobile(true)} aria-label="Open menu" aria-expanded={mobile}>
+          <button
+            type="button"
+            className="icon-btn lg:hidden"
+            onClick={() => setMobile(true)}
+            aria-label="Open menu"
+            aria-expanded={mobile}
+          >
             <Menu className="h-4 w-4" />
           </button>
           <button
@@ -420,22 +562,43 @@ export function Layout() {
           </button>
           <div className="flex-1" />
           {setup.data?.demo_mode && (
-            <span className="hidden rounded-md border border-info/30 bg-info/10 px-2 py-1 text-micro text-info-text md:inline">Demo mode</span>
+            <span className="hidden rounded-md border border-info/30 bg-info/10 px-2 py-1 text-micro text-info-text md:inline">
+              Demo mode
+            </span>
           )}
-          <span className="hidden items-center gap-1.5 text-micro text-muted md:flex" title={connected ? "Live updates connected" : "Live updates disconnected"}>
-            <span className={cn("h-1.5 w-1.5 rounded-full", connected ? "bg-success" : "bg-subtle")} />
+          <span
+            className="hidden items-center gap-1.5 text-micro text-muted md:flex"
+            title={
+              connected ? "Live updates connected" : "Live updates disconnected"
+            }
+          >
+            <span
+              className={cn(
+                "h-1.5 w-1.5 rounded-full",
+                connected ? "bg-success" : "bg-subtle",
+              )}
+            />
             {connected ? "Live" : "Offline"}
           </span>
           <UserMenu />
           <div className="mx-1 hidden h-6 w-px bg-line sm:block" />
           {can("settings:read") && (
-            <button type="button" className="icon-btn" onClick={() => navigate("/settings")} aria-label="Settings">
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={() => navigate("/settings")}
+              aria-label="Settings"
+            >
               <Settings className="h-4 w-4" />
             </button>
           )}
           <Notifications />
         </header>
-        <main id="main-content" tabIndex={-1} className="min-h-0 flex-1 overflow-y-auto focus:outline-none">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="min-h-0 flex-1 overflow-y-auto focus:outline-none"
+        >
           <Suspense
             fallback={
               <div className="flex h-64 items-center justify-center">

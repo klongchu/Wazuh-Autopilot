@@ -200,8 +200,13 @@ class Poller:
             return 0
         since = self._cursor or (utcnow() - timedelta(hours=2))
         try:
-            raw = wazuh.execute(wazuh_settings, "get_wazuh_alerts", {
-                "limit": 500, "compact": False, "timestamp_start": since.strftime("%Y-%m-%dT%H:%M:%SZ")})
+            poll_params = {
+                "limit": 500,
+                "compact": False,
+                "timestamp_start": since.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "level": "5+",
+            }
+            raw = wazuh.execute(wazuh_settings, "get_wazuh_alerts", poll_params)
             alerts = _extract_alerts(result_text(raw))
             result = ingest(alerts, source="poll")
             if alerts:
